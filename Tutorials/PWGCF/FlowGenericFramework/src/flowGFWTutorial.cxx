@@ -84,9 +84,25 @@ struct GfwTutorial {
     registry.add("hMult", "", {HistType::kTH1D, {{3000, 0.5, 3000.5}}});
     registry.add("hCent", "", {HistType::kTH1D, {{90, 0, 90}}});
     registry.add("c22", "", {HistType::kTProfile, {axisMultiplicity}});
+    registry.add("c32", "", {HistType::kTProfile, {axisMultiplicity}}); //LOKI: profile for v3.
+    registry.add("c42", "", {HistType::kTProfile, {axisMultiplicity}}); //LOKI: profile for v4.
+    registry.add("c24", "", {HistType::kTProfile, {axisMultiplicity}}); //LOKI: profile for v2{4}.
+    registry.add("cGap22", "", {HistType::kTProfile, {axisMultiplicity}}); //LOKI: profile for v2{4}.
+    registry.add("cOver22", "", {HistType::kTProfile, {axisMultiplicity}});
+
 
     fGFW->AddRegion("full", -0.8, 0.8, 1, 1);
     corrconfigs.push_back(fGFW->GetCorrelatorConfig("full {2 -2}", "ChFull22", kFALSE));
+    corrconfigs.push_back(fGFW->GetCorrelatorConfig("full {3,-3}", "ChFull32", kFALSE));  //LOKI: Add the correlators to calculate v3.
+    corrconfigs.push_back(fGFW->GetCorrelatorConfig("full {4,-4}", "ChFull42", kFALSE));  //LOKI: Add the correlators to calculate v4.
+    corrconfigs.push_back(fGFW->GetCorrelatorConfig("full {2,2,-2,-2}", "ChFull24", kFALSE));  //LOKI: Add the correlators to calculate v2{4}.
+  
+    fGFW->AddRegion("refN", -0.8, -0.4, 1, 1);
+    fGFW->AddRegion("refP", 0.4, 0.8, 1, 1);
+    fGFW->AddRegion("poiN", -0.8, -0.4, 1+axisPt->GetNbins(), 2);
+    fGFW->AddRegion("overN", -0.8, -0.4, 1, 4);
+    corrconfigs.push_back(fGFW->GetCorrelatorConfig("refN {2} refP {-2}", "ChGap22", kFALSE));
+    corrconfigs.push_back(fGFW->GetCorrelatorConfig("poiN refN | overN {2} refP {-2}", "ChGap22", kTRUE));
     fGFW->CreateRegions();
   }
 
@@ -125,10 +141,23 @@ struct GfwTutorial {
       registry.fill(HIST("hEta"), track.eta());
 
       fGFW->Fill(track.eta(), 1, track.phi(), wacc * weff, 1);
+
+      // LOKI:
+      bool WithinPtPOI = (cfgCutPtPOIMin<track.pt()) && (track.pt()<cfgCutPtPOIMax);
+      bool WithinPtRef = (cfgCutPtRefMin<track.pt()) && (track.pt()<cfgCutPtRefMax);
+      if (WithinPtRef) {fGFW->Fill(track.eta(), axisPt->FindBin(track.pt())-1, track.phi(), wacc * weff, 1);}
+      if (WithinPtPOI) {fGFW->Fill(track.eta(), axisPt->FindBin(track.pt())-1, track.phi(), wacc * weff, 2);}
+      if (WithinPtPOI && WithinPtRef) {fGFW->Fill(track.eta(), axisPt->FindBin(track.pt())-1, track.phi(), wacc * weff, 4);}
     }
 
     // Filling c22 with ROOT TProfile
     FillProfile(corrconfigs.at(0), HIST("c22"), cent);
+    // LOKI
+    FillProfile(corrconfigs.at(1), HIST("c32"), cent);
+    FillProfile(corrconfigs.at(2), HIST("c42"), cent);
+    FillProfile(corrconfigs.at(3), HIST("c24"), cent);
+    FillProfile(corrconfigs.at(4), HIST("cGap22"), cent);
+    FillProfile(corrconfigs.at(5), HIST("cGap22"), cent);
   }
 };
 
