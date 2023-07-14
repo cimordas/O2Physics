@@ -51,18 +51,24 @@ using MyCollisions = soa::Join<aod::Collisions, aod::EvSels, aod::Mults, aod::FT
 
 struct qVectorsTable {
   // Configurables.
-  Configurable<long> nolaterthan{"ccdb-no-later-than",
+  struct : ConfigurableGroup {
+    Configurable<std::string> cfgURL{"cfgURL",
+      "http://alice-ccdb.cern.ch", "Address of the CCDB to browse"};
+    Configurable<long> nolaterthan{"ccdb-no-later-than",
       std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(),
-      "latest acceptable timestamp of creation for the object"};
+      "Latest acceptable timestamp of creation for the object"};
+  } cfgCcdbParam;
+
   Configurable<int> cfgCentEsti{"cfgCentEsti",
-      0, "Centrality estimator (Run3): 0 = FT0M, 1 = FT0A, 2 = FT0C, 3 = FV0A"};
-    // LOKI: we consider here only FIT based estimators. But more can be added (also in MyCollisions)
+      2, "Centrality estimator (Run3): 0 = FT0M, 1 = FT0A, 2 = FT0C, 3 = FV0A"};
+    // LOKI: We have here all centrality estimators for Run 3 (except FDDM and NTPV),
+    // but the Q-vectors are calculated only for some of them.
 
   struct : ConfigurableGroup {
     Configurable<std::vector<float>> cfgCorrConstFT0A{"cfgCorrConstFT0A",
-        {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0-A"};
+        {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A"};
     Configurable<std::vector<float>> cfgCorrConstFT0C{"cfgCorrConstFT0C",
-        {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0-C"};
+        {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C"};
     Configurable<std::vector<float>> cfgCorrConstFV0{"cfgCorrConstFV0",
         {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0"};
   } cfgCorrConstAll;
@@ -82,73 +88,73 @@ struct qVectorsTable {
 
   void init(InitContext const&)
   {
-    // Setup the access to the CCDB objects.
-    // LOKI: Do we keep things hard-coded or make them configurables?
-    ccdb->setURL("http://alice-ccdb.cern.ch");
+    // Setup the access to the CCDB objects of interest.
+    ccdb->setURL(cfgCcdbParam.cfgURL);
     ccdb->setCaching(true);
     ccdb->setLocalObjectValidityChecking();
-    ccdb->setCreatedNotAfter(nolaterthan.value);
+    ccdb->setCreatedNotAfter(cfgCcdbParam.nolaterthan.value);
 
-    LOGF(info, "Getting alignment offsets from the CCDB.");
-    offsetFT0 = ccdb->getForTimeStamp<std::vector<o2::detectors::AlignParam>>("FT0/Calib/Align", nolaterthan.value);
-    offsetFV0 = ccdb->getForTimeStamp<std::vector<o2::detectors::AlignParam>>("FV0/Calib/Align", nolaterthan.value);
+    LOGF(info, "Getting alignment offsets from the CCDB...");
+    offsetFT0 = ccdb->getForTimeStamp<std::vector<o2::detectors::AlignParam>>("FT0/Calib/Align",
+      cfgCcdbParam.nolaterthan.value);
+    offsetFV0 = ccdb->getForTimeStamp<std::vector<o2::detectors::AlignParam>>("FV0/Calib/Align",
+      cfgCcdbParam.nolaterthan.value);
 
-    // Get the offset values themselves.
+    // Get the offset values for the different parts of FIT.
     if (offsetFT0 != nullptr) {
       // FT0 has vector size 2: one element for A side, one for C side.
-      printf("Size offset FT0: %ld\n", offsetFT0->size());  // LOKI: tbr
-      helperEP.SetOffsetFT0A( (*offsetFT0)[0].getX(), (*offsetFT0)[0].getY() );
-      helperEP.SetOffsetFT0C( (*offsetFT0)[1].getX(), (*offsetFT0)[1].getY() );
+      helperEP.SetOffsetFT0A((*offsetFT0)[0].getX(), (*offsetFT0)[0].getY());
+      helperEP.SetOffsetFT0C((*offsetFT0)[1].getX(), (*offsetFT0)[1].getY());
     }
-    else {LOGF(fatal, "Could not get the alignment parameters for the FT0.");}
-    if (offsetFV0 != nullptr) {
-      printf("Size offset FV0: %ld\n", offsetFV0->size());  // LOKI: tbr
-      // FV0 has vector size 2: one element for left side, one for right side.
-      helperEP.SetOffsetFV0left( (*offsetFV0)[0].getX(), (*offsetFV0)[0].getY() );
-      helperEP.SetOffsetFV0right( (*offsetFV0)[1].getX(), (*offsetFV0)[1].getY() );
-    }
-    else {LOGF(fatal, "Could not get the alignment parameters for the FV0.");}
-    printf("Offset for FT0A: x = %.3f y = %.3f\n", (*offsetFT0)[0].getX(), (*offsetFT0)[0].getY());
-    printf("Offset for FT0C: x = %.3f y = %.3f\n", (*offsetFT0)[1].getX(), (*offsetFT0)[1].getY());
-    printf("Offset for FV0-left: x = %.3f y = %.3f\n", (*offsetFV0)[0].getX(), (*offsetFV0)[0].getY());
-    printf("Offset for FV0-right: x = %.3f y = %.3f\n", (*offsetFV0)[1].getX(), (*offsetFV0)[1].getY());
+    else {LOGF(fatal, "Could not get the alignment parameters for FT0.");}
 
-    // LOKI: Add here the access to the CCDB correction constants when at this stage.
+    if (offsetFV0 != nullptr) {
+      // FV0 has vector size 2: one element for left side, one for right side.
+      helperEP.SetOffsetFV0left((*offsetFV0)[0].getX(), (*offsetFV0)[0].getY());
+      helperEP.SetOffsetFV0right((*offsetFV0)[1].getX(), (*offsetFV0)[1].getY());
+    }
+    else {LOGF(fatal, "Could not get the alignment parameters for FV0.");}
+    /*  // Debug printing.
+      printf("Offset for FT0A: x = %.3f y = %.3f\n", (*offsetFT0)[0].getX(), (*offsetFT0)[0].getY());
+      printf("Offset for FT0C: x = %.3f y = %.3f\n", (*offsetFT0)[1].getX(), (*offsetFT0)[1].getY());
+      printf("Offset for FV0-left: x = %.3f y = %.3f\n", (*offsetFV0)[0].getX(), (*offsetFV0)[0].getY());
+      printf("Offset for FV0-right: x = %.3f y = %.3f\n", (*offsetFV0)[1].getX(), (*offsetFV0)[1].getY());
+    */
+
+   // LOKI: If we need to access the corrections from the CCDB, insert that here.
   }
 
   void process(MyCollisions::iterator const& coll, aod::FT0s const& ft0s, aod::FV0As const& fv0s)//, aod::FV0Cs const&)
   {
     // Get the centrality value for all subscribed estimators and takes the one
-    // corresponding to cfgCentEsti. Reject also the events with invalid cent values.
+    // corresponding to cfgCentEsti. Reject also the events with invalid values.
+    // NOTE: centFDDM and centNTPV not implemented as it makes the compilation crashes...
     float centAllEstim[4] = {
-      coll.centFT0M(),
-      coll.centFT0A(),
-      coll.centFT0C(),
+      coll.centFT0M(), coll.centFT0A(), coll.centFT0C(),
       coll.centFV0A()
     };
     float cent = centAllEstim[cfgCentEsti];
-    LOG(info) << "Collision index: " << coll.globalIndex()
+    LOG(info) << "COLLISION INDEX: " << coll.globalIndex()
       << " Centrality percentile: " << cent;
-
-    if (cent < 0. || cent > 100.) { // LOKI_NEW
-      LOG(info) << "Invalid centrality value. Skipping this event";
+    if (cent < 0. || cent > 100.) {
+      LOGF(info, "Invalid centrality value. Skipping this event.");
       return;
     }
 
     // Calculate the Q-vectors values for this event.
     // TODO: Add here qVect for other detectors,...
-    float qVectFT0A[2] = {0.};    // Real and imaginary parts of the Q-vector in FT0-A.
-    float qVectFT0C[2] = {0.};    // Real and imaginary parts of the Q-vector in FT0-C.
-    float qVectFV0[2] = {0.};     // Real and imaginary parts of the Q-vector in FV0.
+    float qVectFT0A[2] = {0.};    // Real and imaginary parts of the Q-vector in FT0A.
+    float qVectFT0C[2] = {0.};    // Real and imaginary parts of the Q-vector in FT0C.
+    float qVectFV0[2] = {0.};     // Real and imaginary parts of the Q-vector in FV0A.
 
     TComplex QvecDet(0);      // Complex value of the Q-vector for any detector.
     double sumAmplDet = 0.;   // Sum of the amplitudes of all non-dead channels in any detector.
 
     /// First check if the collision has a found FT0. If yes, calculate the
-    /// Q-vectors for FT0-A and FT0-C (both real and imaginary parts). If no,
+    /// Q-vectors for FT0A and FT0C (both real and imaginary parts). If no,
     /// attribute dummy values to the corresponding qVect.
     if (coll.has_foundFT0()) {
-      LOGF(info, "A FT0 has been found. Calculating Q-vectors for FT0-A and -C.");
+      LOGF(info, "A FT0 has been found. Getting Q-vectors for it...");
       auto ft0 = coll.foundFT0();
 
       // Iterate over the non-dead channels for FT0-A to get the total Q-vector
@@ -168,17 +174,15 @@ struct qVectorsTable {
         QvecDet /= sumAmplDet;
         qVectFT0A[0] = QvecDet.Re();
         qVectFT0A[1] = QvecDet.Im();
-        printf("qVectFT0A[0] = %.2f ; qVectFT0A[1] = %.2f \n", qVectFT0A[0], qVectFT0A[1]);
+        //printf("qVectFT0A[0] = %.2f ; qVectFT0A[1] = %.2f \n", qVectFT0A[0], qVectFT0A[1]); // Debug printing.
       }
       else {
-        qVectFT0A[0] = 999.;
-        qVectFT0A[1] = 999.;
+        qVectFT0A[0] = 999.; qVectFT0A[1] = 999.;
       }
 
       // Repeat the procedure with FT0-C for the found FT0.
       // Start by resetting to zero the intermediate quantities.
-      QvecDet = TComplex(0.,0.);
-      sumAmplDet = 0;
+      QvecDet = TComplex(0.,0.); sumAmplDet = 0;
       for (std::size_t iChC = 0; iChC < ft0.channelC().size(); iChC++) {
         // iChC ranging from 0 to max 112. We need to add 96 (= max channels in FT0-A)
         // to ensure a proper channel number in FT0 as a whole.
@@ -190,27 +194,23 @@ struct qVectorsTable {
         QvecDet /= sumAmplDet;
         qVectFT0C[0] = QvecDet.Re();
         qVectFT0C[1] = QvecDet.Im();
-        printf("qVectFT0C[0] = %.2f ; qVectFT0C[1] = %.2f \n", qVectFT0C[0], qVectFT0C[1]);
+        //printf("qVectFT0C[0] = %.2f ; qVectFT0C[1] = %.2f \n", qVectFT0C[0], qVectFT0C[1]); // Debug printing.
       }
       else {
-        qVectFT0C[0] = 999.;
-        qVectFT0C[1] = 999.;
+        qVectFT0C[0] = 999.; qVectFT0C[1] = 999.;
       }
     }
     else {
-      LOGF(info, "No FT0 has been found. Setting Qvectors for A and C at -999.");
-      qVectFT0A[0] = -999.;
-      qVectFT0A[1] = -999.;
-      qVectFT0C[0] = -999.;
-      qVectFT0C[1] = -999.;
+      LOGF(info, "No FT0 has been found. Setting Q-vectors to -999.");
+      qVectFT0A[0] = -999.; qVectFT0A[1] = -999.;
+      qVectFT0C[0] = -999.; qVectFT0C[1] = -999.;
     }
 
     /// Repeat the procedure for FV0 if one has been found for this collision.
     /// Again reset the intermediate quantities to zero.
-    QvecDet = TComplex(0.,0.);
-    sumAmplDet = 0;
+    QvecDet = TComplex(0.,0.); sumAmplDet = 0;
     if (coll.has_foundFV0()) {
-      LOGF(info, "A FV0 has been found. Calculating Q-vectors for FV0-A.");
+      LOGF(info, "A FV0 has been found. Calculating Q-vectors for FV0A...");
       auto fv0 = coll.foundFV0();
 
       for (std::size_t iCh = 0; iCh < fv0.channel().size(); iCh++) {
@@ -222,17 +222,15 @@ struct qVectorsTable {
         QvecDet /= sumAmplDet;
         qVectFV0[0] = QvecDet.Re();
         qVectFV0[1] = QvecDet.Im();
-        printf("qVectFV0[0] = %.2f ; qVectFV0[1] = %.2f \n", qVectFV0[0], qVectFV0[1]);
+        //printf("qVectFV0[0] = %.2f ; qVectFV0[1] = %.2f \n", qVectFV0[0], qVectFV0[1]); // Debug printing.
       }
       else {
-        qVectFV0[0] = 999.;
-        qVectFV0[1] = 999.;
+        qVectFV0[0] = 999.; qVectFV0[1] = 999.;
       }
     }
     else {
-      LOGF(info, "No FV0 has been found. Setting Qvectors at -999.");
-      qVectFV0[0] = -999.;
-      qVectFV0[1] = -999.;
+      LOGF(info, "No FV0 has been found. Setting Q-vectors to -999.");
+      qVectFV0[0] = -999.; qVectFV0[1] = -999.;
     }
 
     /// TODO: Repeat here the procedure for any other Qvector columns.
@@ -252,7 +250,6 @@ struct qVectorsTable {
             qVectFT0A[0], qVectFT0A[1],
             qVectFT0C[0], qVectFT0C[1],
             qVectFV0[0], qVectFV0[1]);
-
   } // End process.
 
 };

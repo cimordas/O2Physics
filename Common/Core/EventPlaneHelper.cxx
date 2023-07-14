@@ -146,15 +146,16 @@ void EventPlaneHelper::GetCorrRecentering(const std::shared_ptr<TH2> histQ, floa
   meanX = histQ->GetMean(1);
   meanY = histQ->GetMean(2);
 }
-/*
-void EventPlaneHelper::GetCorrWidth(TH2D* histQ, float& stdX, float& stdY)
+
+void EventPlaneHelper::GetCorrWidth(const std::shared_ptr<TH2> histQ, float& stdX, float& stdY)
 {
   stdX = histQ->GetStdDev(1);
   stdY = histQ->GetStdDev(2);
 }
 
-void EventPlaneHelper::GetCorrRescale(TH2D* histQ,
-  float& aPlus, float& aMinus, float& lambdaPlus, float& lambdaMinus)
+void EventPlaneHelper::GetCorrTwistRecale(const std::shared_ptr<TH2> histQ,
+                                          float& aPlus, float& aMinus,
+                                          float& lambdaPlus, float& lambdaMinus)
 {
   // Get first information from the provided TH2D.
   float rho = histQ->GetCorrelationFactor();
@@ -173,4 +174,3 @@ void EventPlaneHelper::GetCorrRescale(TH2D* histQ,
   lambdaPlus = b/aPlus;
   lambdaMinus = b/aMinus;
 }
-*/

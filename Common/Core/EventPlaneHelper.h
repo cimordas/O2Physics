@@ -61,11 +61,13 @@ public:
   // Method to get the recentering correction on the Qx-Qy distribution.
   void GetCorrRecentering(const std::shared_ptr<TH2> histQ, float& meanX, float& meanY);
 
-  // Method to get the ... correction on the Qx-Qy distribution.
-  ///void GetCorrWidth(const std::shared_ptr<TH2D> histQ, float& stdX, float& stdY);
+  // Method to get the std. deviation on the Qx-Qy distribution.
+  void GetCorrWidth(const std::shared_ptr<TH2> histQ, float& stdX, float& stdY);
 
   // Method to get the twist and rescale correction on the Qx-Qy distribution.
-  ///void GetCorrRescale(const std::shared_ptr<TH2D> histQ, float& aPlus, float& aMinus, float& lambdaPlus, float& lambdaMinus);
+  void GetCorrTwistRecale(const std::shared_ptr<TH2> histQ,
+                          float& aPlus, float& aMinus,
+                          float& lambdaPlus, float& lambdaMinus);
 
 
 private:
