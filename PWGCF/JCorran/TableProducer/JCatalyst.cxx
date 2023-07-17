@@ -107,7 +107,7 @@ struct JCatalyst {
     }
   }
 
-  void process(soa::Join<aod::Collisions, aod::EvSels, aod::CentRun2V0Ms, aod::CentRun2CL0s, aod::CentRun2CL1s>::iterator const& collision, soa::Join<aod::Tracks, aod::TracksExtra, aod::TrackSelection> const& tracks)
+  void process(soa::Join<aod::Collisions, aod::EvSels, aod::CentRun2V0Ms, aod::CentRun2CL0s, aod::CentRun2CL1s>::iterator const& collision, soa::Join<aod::Tracks, aod::TracksExtra, aod::TrackSelection> const& tracks, aod::BCsWithTimestamps const&)
   {
     Double_t cent[3] = {
       collision.centRun2V0M(),

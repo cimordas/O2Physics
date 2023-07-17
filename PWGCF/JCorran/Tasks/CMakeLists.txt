@@ -13,3 +13,11 @@ o2physics_add_dpl_workflow(jfluc-analysis
                     SOURCES jflucAnalysisTask.cxx
                     PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::JCorran
                     COMPONENT_NAME Analysis)
+                    
+o2physics_add_dpl_workflow(jac2h-analysis
+                    SOURCES jAC2hAnalysisTask.cxx
+                    PUBLIC_LINK_LIBRARIES	O2::Framework
+                    			   	            O2Physics::AnalysisCore
+                    			   	            O2Physics::JCorran
+                                          O2::CCDB
+                    COMPONENT_NAME Analysis)
