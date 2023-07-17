@@ -44,7 +44,6 @@
 
 using namespace o2;
 using namespace o2::framework;
-//using namespace o2::expressions;
 
 using MyCollisions = soa::Join<aod::Collisions, aod::EvSels, aod::Mults, aod::FT0sCorrected,
   aod::CentFT0Ms, aod::CentFT0As, aod::CentFT0Cs, aod::CentFV0As>;
@@ -64,6 +63,8 @@ struct qVectorsTable {
     // LOKI: We have here all centrality estimators for Run 3 (except FDDM and NTPV),
     // but the Q-vectors are calculated only for some of them.
 
+  #include "Common/TableProducer/qVectorsCorrConst.cxx" // NOLINT
+/*
   struct : ConfigurableGroup {
     Configurable<std::vector<float>> cfgCorrConstFT0A{"cfgCorrConstFT0A",
         {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A"};
@@ -72,7 +73,7 @@ struct qVectorsTable {
     Configurable<std::vector<float>> cfgCorrConstFV0{"cfgCorrConstFV0",
         {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0"};
   } cfgCorrConstAll;
-
+*/
   // Table.
   Produces<aod::Qvectors> qVector;
 
@@ -122,6 +123,7 @@ struct qVectorsTable {
     */
 
    // LOKI: If we need to access the corrections from the CCDB, insert that here.
+   // In the meantime, call upon the external files with all the configurables.
   }
 
   void process(MyCollisions::iterator const& coll, aod::FT0s const& ft0s, aod::FV0As const& fv0s)//, aod::FV0Cs const&)
@@ -240,9 +242,56 @@ struct qVectorsTable {
     // The function needs to be called for each detector/set separately.
     // A correction constant set to zero means this correction is not applied.
     // LOKI: Each detector must have their own vector of correction constants.
-    helperEP.DoCorrections(qVectFT0A[0], qVectFT0A[1], cfgCorrConstAll.cfgCorrConstFT0A);
-    helperEP.DoCorrections(qVectFT0C[0], qVectFT0C[1], cfgCorrConstAll.cfgCorrConstFT0C);
-    helperEP.DoCorrections(qVectFV0[0], qVectFV0[1], cfgCorrConstAll.cfgCorrConstFV0);
+    int cBin = helperEP.GetCentBin(cent);
+    std::vector<float> corrConstFT0A;
+    std::vector<float> corrConstFT0C;
+    std::vector<float> corrConstFV0A;    
+    switch (cBin) {
+    case 0: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin0;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin0;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin0;
+      break;
+    case 1: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin1;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin1;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin1;
+      break;
+    case 2: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin2;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin2;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin2;
+      break;
+    case 3: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin3;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin3;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin3;
+      break;
+    case 4: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin4;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin4;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin4;
+      break;
+    case 5: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin5;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin5;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin5;
+      break;
+    case 6: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin6;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin6;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin6;
+      break;
+    case 7: 
+      corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin7;
+      corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin7;
+      corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin7;
+      break;
+    }
+    
+    helperEP.DoCorrections(qVectFT0A[0], qVectFT0A[1], corrConstFT0A);
+    //helperEP.DoCorrections(qVectFT0C[0], qVectFT0C[1], cfgCorrConstAll.cfgCorrConstFT0C);
+    //helperEP.DoCorrections(qVectFV0[0], qVectFV0[1], cfgCorrConstAll.cfgCorrConstFV0);
 
     // Fill the columns of the Qvectors table.
     ///qVector(coll.globalIndex(), qVectFT0A[0], qVectFT0A[1],
