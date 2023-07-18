@@ -38,25 +38,68 @@ class JAC2hHistManager
 {
 public:
   JAC2hHistManager() = default;
-  //~JAC2hHistManager();
 
-  void SetHistManager(HistogramRegistry *myRegistry) {
+  void SetHistManager(HistogramRegistry *myRegistry)
+  {
     mHistoRegistry = myRegistry;
-    LOGF(info, "Histogram registry has been set.\n");
+    LOGF(info, "Histogram registry has been set.");
   }
   HistogramRegistry *GetHistManager() const {return mHistoRegistry;}
 
+  void SetNsamples(int mySamples)
+  {
+    mNsamples = mySamples;
+    LOGF(info, "Number of samples set to %d.", mNsamples);
+  }
+  int GetNsamples() const {return mNsamples;}
+
   void CreateHistosQA();
-  //void CreateHistosAN();
+  void CreateHistosAN();
+
+  // The template functions are defined in the header to prevent compilation issues.
+  template <int cBin, typename T>
+  void FillEventQA(const T& coll, int multi)
+  {
+    if (!mHistoRegistry) {
+      LOGF(error, "No histogram manager provided. Quit.");
+      return;
+    }
+
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histCent"), coll.cent());
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histZvtx"), coll.posZ());
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histMulti"), multi);
+  }
 
   template <int cBin, typename T>
-  void fillEventQA(const T& coll);
+  void FillTrackQA(const T& track)
+  {
+    if (!mHistoRegistry) {
+      LOGF(error, "No histogram manager provided. Quit.");
+      return;
+    }
 
-  //template <int cBin, typename T>
-  //void fillTrackQA(const T& track);
+    // NOTE: Crosscheck again that the corrected histograms are filled correctly!!!
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPtUncorrected"),
+                        track.pt());
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPtCorrected"),
+                        track.pt(), 1./(track.weightEff()));
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histEta"),
+                        track.eta());
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPhiUncorrected"),
+                        track.phi());
+    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPhiCorrected"),
+                        track.phi(), 1./(track.weightNUA()));
+  }
 
 private:
   HistogramRegistry *mHistoRegistry = nullptr;  ///< QA + analysis output.
+  int mNsamples = 10; ///< Number of samples for the bootstrap.
+
+  static constexpr std::string_view mCentClasses[] = {  // Classes from JCatalyst.
+    "Centrality_0-1/", "Centrality_1-2/", "Centrality_2-5/", "Centrality_5-10/",
+    "Centrality_10-20/", "Centrality_20-30/", "Centrality_30-40/", "Centrality_40-50/",
+    "Centrality_50-60/"
+  };
 
   ClassDefNV(JAC2hHistManager, 1);  
 };

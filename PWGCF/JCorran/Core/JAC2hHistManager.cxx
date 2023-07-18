@@ -22,29 +22,19 @@ using namespace o2;
 using namespace o2::framework;
 namespace o2::analysis::PWGCF
 {
+/*
 static constexpr std::string_view centClasses[] = {  // Classes from JCatalyst.
   "Centrality_0-1/", "Centrality_1-2/", "Centrality_2-5/", "Centrality_5-10/",
   "Centrality_10-20/", "Centrality_20-30/", "Centrality_30-40/", "Centrality_40-50/",
   "Centrality_50-60/"
-};
-/*
-JAC2hHistManager::JAC2hHistManager()
-  : mHistoRegistry(nullptr)
-{
-  const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]); //LOKI
-  printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
-}
+};*/
 
-JAC2hHistManager::~JAC2hHistManager()
-{
-}
-*/
 /// \brief .
 /// .
 void JAC2hHistManager::CreateHistosQA()
 {
   if (!mHistoRegistry) {
-    LOGF(error, "No histogram manager provided. Quit.\n");
+    LOGF(error, "No histogram manager provided. Quit.");
     return;
   }
 
@@ -56,14 +46,14 @@ void JAC2hHistManager::CreateHistosQA()
   // classes.
   /// Centrality distributions.
   const AxisSpec axisCent{100, 0., 100., "Centrality percentile"};
-  mHistoRegistry->add("histCentBefore", "Centrality from the JCatalyst",
+  mHistoRegistry->add("histCentCatalyst", "Centrality from the JCatalyst",
                       HistType::kTH1F, {axisCent}, true);
   mHistoRegistry->add("Centrality_0-1/histCent", "Centrality after own cuts",
                       HistType::kTH1F, {axisCent}, true);
 
   /// Event distributions.
   const AxisSpec axisZvtx{75, -15., 15., "Z_{vtx} [cm]"};
-  mHistoRegistry->add("Centrality_0-1/histZvtx", "Z_{vtx} position after own cuts",
+  mHistoRegistry->add("Centrality_0-1/histZvtx", "Z_{vtx} after own cuts",
                       HistType::kTH1F, {axisZvtx}, true);
 
   const AxisSpec axisMulti{1000, 0., 5000., "N_{tracks}"};
@@ -77,40 +67,70 @@ void JAC2hHistManager::CreateHistosQA()
                                   1.5, 1.6, 1.7, 1.8, 1.9, 2., 2.2, 2.4, 2.6,
                                   2.8, 3., 3.2, 3.4, 3.6, 3.8, 4., 4.5, 5., 6.};
   const AxisSpec axisPt = {ptBinning, "#it{p}_{T} [GeV/#it{c}]"};
-  mHistoRegistry->add("Centrality_0-1/histPtBefore", "#it{p}_{T} (no NUE)",
+  mHistoRegistry->add("Centrality_0-1/histPtUncorrected", "#it{p}_{T} (not NUE corrected)",
                       HistType::kTH1F, {axisPt}, true);
-  mHistoRegistry->add("Centrality_0-1/histPtAfter", "#it{p}_{T} (with NUE)",
+  mHistoRegistry->add("Centrality_0-1/histPtCorrected", "#it{p}_{T} (NUE corrected)",
                       HistType::kTH1F, {axisPt}, true);
 
   const AxisSpec axisEta = {20, -1., 1., "#eta"};
-  mHistoRegistry->add("Centrality_0-1/histEta", "#eta",
+  mHistoRegistry->add("Centrality_0-1/histEta", "Pseudorapidity",
                       HistType::kTH1F, {axisEta}, true);
 
   const AxisSpec axisPhi = {100, 0., 2.*M_PI, "#varphi"};
-  mHistoRegistry->add("Centrality_0-1/histPhiBefore", "#varphi (no NUA)",
+  mHistoRegistry->add("Centrality_0-1/histPhiUncorrected", "Azimuthal angles (not NUA corrected)",
                       HistType::kTH1F, {axisPhi}, true);
-  mHistoRegistry->add("Centrality_0-1/histPhiAfter", "#varphi (with NUA)",
+  mHistoRegistry->add("Centrality_0-1/histPhiCorrected", "Azimuthal angles (NUA corrected)",
                       HistType::kTH1F, {axisPhi}, true);
 
+/*  Commented till the charge is implemented in the catalyst.
   const AxisSpec axisCharge = {2, -1., 1., "Charge"};
   mHistoRegistry->add("Centrality_0-1/histCharge", "Electric charge",
                       HistType::kTH1I, {axisCharge}, true);
+*/
 
-  /// Clone the content of Centrality_0-1 into the other centrality classes.
+  // Clone the content of Centrality_0-1 into the other centrality classes.
   for (int iBin = 1; iBin < 9; iBin++) {
-    mHistoRegistry->addClone("Centrality_0-1/", centClasses[iBin].data());
+    mHistoRegistry->addClone("Centrality_0-1/", mCentClasses[iBin].data());
   }
 }
 
-template <int cBin, typename T>
-void JAC2hHistManager::fillEventQA(const T& coll)
+/// \brief .
+/// .
+void JAC2hHistManager::CreateHistosAN()
 {
   if (!mHistoRegistry) {
-    LOGF(error, "No histogram manager provided. Quit.\n");
+    LOGF(error, "No histogram manager provided. Quit.");
     return;
   }
 
-  mHistoRegistry->fill(HIST(centClasses[cBin])+HIST("histZvtx"), coll.posZ());
+  // All objects are defined for the first centrality class in details, with
+  // callSumw2 set to true for all. They will be cloned later for all the other
+  // classes.
+  /// Number of events for each bootstrap sample.
+  const AxisSpec axisSamples{mNsamples, 0., (double)mNsamples, "Sample #"};
+  mHistoRegistry->add("Centrality_0-1/histSamples", "N_{events} in each bootstrap sample",
+                      HistType::kTH1I, {axisSamples}, true);
+
+  /// Profiles for the 2-particle and 2-harmonic terms.
+  const AxisSpec axis2pCorrel{8, 0., 8., "n"};
+  mHistoRegistry->add("Centrality_0-1/hist2pCorrel_Full", "<v_{n}^{2}>",
+                      HistType::kTProfile, {axis2pCorrel}, true);
+
+  const AxisSpec axis2hCorrel{14, 0., 14., "{a,b}"};
+  mHistoRegistry->add("Centrality_0-1/hist2hCorrel_Full", "<v_{m}^{2a}v_{n}^{2b}>",
+                      HistType::kTProfile, {axis2hCorrel}, true);
+
+  // Clone the full profiles for all the samples.
+  for (int iS = 0; iS < mNsamples; iS++) {
+    std::string strSample = Form("_Sample%d", iS);
+    mHistoRegistry->addClone("Full", strSample.data());
+  } // Go to the next sample.
+
+  // Clone the content of Centrality_0-1 into the other centrality classes.
+  for (int iBin = 1; iBin < 9; iBin++) {
+    mHistoRegistry->addClone("Centrality_0-1/", mCentClasses[iBin].data());
+  }
+
 }
 
 } // namespace o2::analysis::PWGCF
