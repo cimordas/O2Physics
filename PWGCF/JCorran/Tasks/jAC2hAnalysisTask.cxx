@@ -43,6 +43,7 @@ struct jAC2hAnalysisTask {
   // Configurables.
   Configurable<int> cfgNsamples{"cfgNsamples", 10, "Number of bootstrap samples"};
   Configurable<int> cfgMultiMin{"cfgMultiMin", 10, "Low multiplicity cut"};
+  Configurable<float> cfgEtaGap{"cfgEtaGap", 1.0, "Minimum value for the eta gap"};
 
   // Filters.
 
@@ -51,7 +52,7 @@ struct jAC2hAnalysisTask {
   // (false).
   HistogramRegistry myHistoRegistry{"myHistoRegistry", {},
                                   OutputObjHandlingPolicy::AnalysisObject,
-                                  false, false};
+                                  true, false};
 
   // Variables.
   JAC2hHistManager myHistoManager;
@@ -61,9 +62,9 @@ struct jAC2hAnalysisTask {
     // Initialize the histograms within the registry itself.
     myHistoManager.SetHistManager(&myHistoRegistry);
     myHistoManager.SetNsamples(cfgNsamples);
+    myHistoManager.SetEtaGap(cfgEtaGap);
 
-    myHistoManager.CreateHistosQA();
-    myHistoManager.CreateHistosAN();
+    myHistoManager.CreateHistos();
 
     // LOKI: added just to make the compilator happy...
     const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]);
@@ -92,46 +93,55 @@ struct jAC2hAnalysisTask {
     int mySample = static_cast<int>(gRandom->Uniform(0, cfgNsamples));
     printf("Sample: %d\n", mySample);
 
-    // Fill the remaining QA histograms and 
+    // Save the azimuthal angles and particle weights in dynamic arrays, then
+    // compute the multiparticle correlators for this event and fill all the
+    // profiles and QA histograms. 
     // The EventQA is filled only for the first track of the loop.
+    double *myPhi = new double[nTracks]();
+    double *myPartWeights = new double[nTracks]();
+    int iTrack = 0;
     bool isFirstTrack = true;
+
     for (auto& track : tracks) {
+      myPhi[iTrack] = track.phi();
+      myPartWeights[iTrack] = 1./(track.weightEff() * track.weightNUA());
+      printf("iTrack: %d Phi: %.2f Weight: %.2f\n", iTrack, myPhi[iTrack], myPartWeights[iTrack]);
 
       switch (collision.cbin()) {
       case 0:
-        if (isFirstTrack) {myHistoManager.FillEventQA<0>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<0>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<0>(track);
         break;
       case 1:
-        if (isFirstTrack) {myHistoManager.FillEventQA<1>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<1>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<1>(track);
         break;
       case 2:
-        if (isFirstTrack) {myHistoManager.FillEventQA<2>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<2>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<2>(track);
         break;
       case 3:
-        if (isFirstTrack) {myHistoManager.FillEventQA<3>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<3>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<3>(track);
         break;
       case 4:
-        if (isFirstTrack) {myHistoManager.FillEventQA<4>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<4>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<4>(track);
         break;
       case 5:
-        if (isFirstTrack) {myHistoManager.FillEventQA<5>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<5>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<5>(track);
         break;
       case 6:
-        if (isFirstTrack) {myHistoManager.FillEventQA<6>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<6>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<6>(track);
         break;
       case 7:
-        if (isFirstTrack) {myHistoManager.FillEventQA<7>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<7>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<7>(track);
         break;
       case 8:
-        if (isFirstTrack) {myHistoManager.FillEventQA<8>(collision, nTracks);}
+        if (isFirstTrack) {myHistoManager.FillEventQA<8>(collision, nTracks, mySample);}
         myHistoManager.FillTrackQA<8>(track);
         break;
       }
@@ -140,7 +150,10 @@ struct jAC2hAnalysisTask {
       if (isFirstTrack) {isFirstTrack = false;}
     } // Go to the next track.
 
-
+    // Reset all event-related quantities for the next collision.
+    delete[] myPhi;
+    delete[] myPartWeights;
+    LOGF(info, "Collision analysed. Next...");
   }
 
 };
