@@ -109,9 +109,9 @@ void EventPlaneHelper::SumQvectors(int det, int chno, float ampl, TComplex& Qvec
 
 int EventPlaneHelper::GetCentBin(float cent)
 {
-  const float centClasses[] = {0., 5., 10., 20., 30., 40., 50., 60., 70., 80.};
+  const float centClasses[] = {0., 5., 10., 20., 30., 40., 50., 60., 80.};
 
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 9; i++) {
     if (cent >= centClasses[i]) {continue;}
     else {return i-1;}
   }
@@ -173,4 +173,9 @@ void EventPlaneHelper::GetCorrTwistRecale(const std::shared_ptr<TH2> histQ,
   aMinus = TMath::Sqrt(2.*TMath::Power(sigmay, 2.) - TMath::Power(b, 2.));
   lambdaPlus = b/aPlus;
   lambdaMinus = b/aMinus;
+}
+
+float EventPlaneHelper::GetEventPlane(const float qx, const float qy)
+{
+  return (TMath::ATan2(qy, qx))/2.;
 }

@@ -69,6 +69,8 @@ public:
                           float& aPlus, float& aMinus,
                           float& lambdaPlus, float& lambdaMinus);
 
+  // Method to calculate the event plane from the provided (Qx, Qy), for n = 2.
+  float GetEventPlane(const float qx, const float qy);
 
 private:
   double mOffsetFT0AX = 0.;       // X-coordinate of the offset of FT0-A.

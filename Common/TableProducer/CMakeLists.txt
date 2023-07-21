@@ -117,3 +117,12 @@ o2physics_add_dpl_workflow(qvector-table
                                           O2Physics::DataModel
                                           O2::CCDB
                     COMPONENT_NAME Analysis)
+
+o2physics_add_dpl_workflow(evtplane-table
+                    SOURCES evtPlanesTable.cxx
+                    PUBLIC_LINK_LIBRARIES O2::Framework
+                                          O2Physics::AnalysisCore
+                                          O2::DetectorsCommonDataFormats
+                                          O2Physics::DataModel
+                                          O2::CCDB
+                    COMPONENT_NAME Analysis)

@@ -116,17 +116,17 @@ struct qVectorsCorrection {
     // Fill the (Qx,Qy) distributions for each detector, after removing dummy values.
     /// NOTE: FV0 (and FT0C?) are not fully implemented yet
     /// --> Values are just dummy placeholders.
-    if (TMath::Abs(vec.qvecFT0ARe()) < 900 && TMath::Abs(vec.qvecFT0AIm()) < 900) {
+    if (TMath::Abs(vec.qvecFT0ARe()) < 100 && TMath::Abs(vec.qvecFT0AIm()) < 100) {
       histosQA.fill(HIST(qV::centClasses[bin])+HIST("histQvecFT0A"),
           vec.qvecFT0ARe(), vec.qvecFT0AIm());
     }
-    if (TMath::Abs(vec.qvecFT0CRe()) < 900 && TMath::Abs(vec.qvecFT0CIm()) < 900) {
+    if (TMath::Abs(vec.qvecFT0CRe()) < 100 && TMath::Abs(vec.qvecFT0CIm()) < 100) {
       histosQA.fill(HIST(qV::centClasses[bin])+HIST("histQvecFT0C"),
           vec.qvecFT0CRe(), vec.qvecFT0CIm());
     }
-    if (TMath::Abs(vec.qvecFV0Re()) < 900 && TMath::Abs(vec.qvecFV0Im()) < 900) {
+    if (TMath::Abs(vec.qvecFV0ARe()) < 100 && TMath::Abs(vec.qvecFV0AIm()) < 100) {
       histosQA.fill(HIST(qV::centClasses[bin])+HIST("histQvecFV0A"),
-          vec.qvecFV0Re(), vec.qvecFV0Im());
+          vec.qvecFV0ARe(), vec.qvecFV0AIm());
     }
     LOGF(info, "QA has been filled.");
   }
@@ -137,7 +137,7 @@ struct qVectorsCorrection {
     for (auto &qVec : qVecs) {
       // Get the centrality bin, and fill the centrality QA histograms.
       int centBin = helperEP.GetCentBin(qVec.cent());
-      LOGF(info, "Centrality percentile = %.0f Centrality bin: %d", qVec.cent(), centBin);
+      LOGF(info, "Centrality percentile = %.1f Centrality bin: %d", qVec.cent(), centBin);
       histosQA.fill(HIST("histCentFull"), qVec.cent());
       
       if (centBin < 0 || centBin > 8) {continue;}
@@ -245,7 +245,6 @@ struct qVectorsCorrection {
       printf("Index: %d corrConst: %e\n", i, corrConst[i]);
     }
   }); // Go to the next centrality class.
-
 
   }   // End void process(...)
 };

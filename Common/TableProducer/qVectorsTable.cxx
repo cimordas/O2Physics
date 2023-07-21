@@ -63,17 +63,39 @@ struct qVectorsTable {
     // LOKI: We have here all centrality estimators for Run 3 (except FDDM and NTPV),
     // but the Q-vectors are calculated only for some of them.
 
-  #include "Common/TableProducer/qVectorsCorrConst.cxx" // NOLINT
-/*
   struct : ConfigurableGroup {
-    Configurable<std::vector<float>> cfgCorrConstFT0A{"cfgCorrConstFT0A",
-        {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A"};
-    Configurable<std::vector<float>> cfgCorrConstFT0C{"cfgCorrConstFT0C",
-        {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C"};
-    Configurable<std::vector<float>> cfgCorrConstFV0{"cfgCorrConstFV0",
-        {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0"};
-  } cfgCorrConstAll;
-*/
+    Configurable<std::vector<float>> cfgFT0ACentBin0{"cfgFT0ACentBin0", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 0"};
+    Configurable<std::vector<float>> cfgFT0ACentBin1{"cfgFT0ACentBin1", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 1"};
+    Configurable<std::vector<float>> cfgFT0ACentBin2{"cfgFT0ACentBin2", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 2"};
+    Configurable<std::vector<float>> cfgFT0ACentBin3{"cfgFT0ACentBin3", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 3"};
+    Configurable<std::vector<float>> cfgFT0ACentBin4{"cfgFT0ACentBin4", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 4"};
+    Configurable<std::vector<float>> cfgFT0ACentBin5{"cfgFT0ACentBin5", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 5"};
+    Configurable<std::vector<float>> cfgFT0ACentBin6{"cfgFT0ACentBin6", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 6"};
+    Configurable<std::vector<float>> cfgFT0ACentBin7{"cfgFT0ACentBin7", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0A, cent bin 7"};
+  } cfgCorrConstFT0A;
+
+  struct : ConfigurableGroup {
+    Configurable<std::vector<float>> cfgFT0CCentBin0{"cfgFT0CCentBin0", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 0"};
+    Configurable<std::vector<float>> cfgFT0CCentBin1{"cfgFT0CCentBin1", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 1"};
+    Configurable<std::vector<float>> cfgFT0CCentBin2{"cfgFT0CCentBin2", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 2"};
+    Configurable<std::vector<float>> cfgFT0CCentBin3{"cfgFT0CCentBin3", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 3"};
+    Configurable<std::vector<float>> cfgFT0CCentBin4{"cfgFT0CCentBin4", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 4"};
+    Configurable<std::vector<float>> cfgFT0CCentBin5{"cfgFT0CCentBin5", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 5"};
+    Configurable<std::vector<float>> cfgFT0CCentBin6{"cfgFT0CCentBin6", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 6"};
+    Configurable<std::vector<float>> cfgFT0CCentBin7{"cfgFT0CCentBin7", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FT0C, cent bin 7"};
+  } cfgCorrConstFT0C;
+
+  struct : ConfigurableGroup {
+    Configurable<std::vector<float>> cfgFV0ACentBin0{"cfgFV0ACentBin0", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 0"};
+    Configurable<std::vector<float>> cfgFV0ACentBin1{"cfgFV0ACentBin1", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 1"};
+    Configurable<std::vector<float>> cfgFV0ACentBin2{"cfgFV0ACentBin2", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 2"};
+    Configurable<std::vector<float>> cfgFV0ACentBin3{"cfgFV0ACentBin3", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 3"};
+    Configurable<std::vector<float>> cfgFV0ACentBin4{"cfgFV0ACentBin4", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 4"};
+    Configurable<std::vector<float>> cfgFV0ACentBin5{"cfgFV0ACentBin5", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 5"};
+    Configurable<std::vector<float>> cfgFV0ACentBin6{"cfgFV0ACentBin6", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 6"};
+    Configurable<std::vector<float>> cfgFV0ACentBin7{"cfgFV0ACentBin7", {0., 0., 0., 0., 0., 0., 0., 0.}, "Correction constants for FV0A, cent bin 7"};
+  } cfgCorrConstFV0A;
+
   // Table.
   Produces<aod::Qvectors> qVector;
 
@@ -147,7 +169,7 @@ struct qVectorsTable {
     // TODO: Add here qVect for other detectors,...
     float qVectFT0A[2] = {0.};    // Real and imaginary parts of the Q-vector in FT0A.
     float qVectFT0C[2] = {0.};    // Real and imaginary parts of the Q-vector in FT0C.
-    float qVectFV0[2] = {0.};     // Real and imaginary parts of the Q-vector in FV0A.
+    float qVectFV0A[2] = {0.};    // Real and imaginary parts of the Q-vector in FV0A.
 
     TComplex QvecDet(0);      // Complex value of the Q-vector for any detector.
     double sumAmplDet = 0.;   // Sum of the amplitudes of all non-dead channels in any detector.
@@ -222,17 +244,17 @@ struct qVectorsTable {
 
       if (sumAmplDet != 0) {
         QvecDet /= sumAmplDet;
-        qVectFV0[0] = QvecDet.Re();
-        qVectFV0[1] = QvecDet.Im();
+        qVectFV0A[0] = QvecDet.Re();
+        qVectFV0A[1] = QvecDet.Im();
         //printf("qVectFV0[0] = %.2f ; qVectFV0[1] = %.2f \n", qVectFV0[0], qVectFV0[1]); // Debug printing.
       }
       else {
-        qVectFV0[0] = 999.; qVectFV0[1] = 999.;
+        qVectFV0A[0] = 999.; qVectFV0A[1] = 999.;
       }
     }
     else {
       LOGF(info, "No FV0 has been found. Setting Q-vectors to -999.");
-      qVectFV0[0] = -999.; qVectFV0[1] = -999.;
+      qVectFV0A[0] = -999.; qVectFV0A[1] = -999.;
     }
 
     /// TODO: Repeat here the procedure for any other Qvector columns.
@@ -245,9 +267,9 @@ struct qVectorsTable {
     int cBin = helperEP.GetCentBin(cent);
     std::vector<float> corrConstFT0A;
     std::vector<float> corrConstFT0C;
-    std::vector<float> corrConstFV0A;    
+    std::vector<float> corrConstFV0A;
     switch (cBin) {
-    case 0: 
+    case 0:
       corrConstFT0A = cfgCorrConstFT0A.cfgFT0ACentBin0;
       corrConstFT0C = cfgCorrConstFT0C.cfgFT0CCentBin0;
       corrConstFV0A = cfgCorrConstFV0A.cfgFV0ACentBin0;
@@ -290,15 +312,18 @@ struct qVectorsTable {
     }
     
     helperEP.DoCorrections(qVectFT0A[0], qVectFT0A[1], corrConstFT0A);
-    //helperEP.DoCorrections(qVectFT0C[0], qVectFT0C[1], cfgCorrConstAll.cfgCorrConstFT0C);
-    //helperEP.DoCorrections(qVectFV0[0], qVectFV0[1], cfgCorrConstAll.cfgCorrConstFV0);
+    helperEP.DoCorrections(qVectFT0C[0], qVectFT0C[1], corrConstFT0C);
+    helperEP.DoCorrections(qVectFV0A[0], qVectFV0A[1], corrConstFV0A);
+
+    std::vector<float>().swap(corrConstFT0A);
+    std::vector<float>().swap(corrConstFT0C);
+    std::vector<float>().swap(corrConstFV0A);
 
     // Fill the columns of the Qvectors table.
-    ///qVector(coll.globalIndex(), qVectFT0A[0], qVectFT0A[1],
     qVector(cent,
             qVectFT0A[0], qVectFT0A[1],
             qVectFT0C[0], qVectFT0C[1],
-            qVectFV0[0], qVectFV0[1]);
+            qVectFV0A[0], qVectFV0A[1]);
   } // End process.
 
 };
