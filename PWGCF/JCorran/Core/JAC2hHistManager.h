@@ -1,4 +1,3 @@
-
 // Copyright 2019-2020 CERN and copyright holders of ALICE O2.
 // See https://alice-o2.web.cern.ch/copyright for details of the copyright holders.
 // All rights not expressly granted are reserved.
@@ -24,7 +23,6 @@
 #include "Framework/AnalysisTask.h"
 #include "Framework/ASoAHelpers.h"
 #include "Framework/HistogramRegistry.h"
-//#include "Framework/runDataProcessing.h"
 #include "Framework/RunningWorkflowInfo.h"
 
 #include "PWGCF/JCorran/DataModel/JCatalyst.h"
@@ -37,8 +35,9 @@ namespace o2::analysis::PWGCF
 class JAC2hHistManager
 {
 public:
-  JAC2hHistManager() = default;
+  JAC2hHistManager() = default;   // Constructor.
 
+  // Setters and getters.
   void SetHistManager(HistogramRegistry *myRegistry)
   {
     mHistoRegistry = myRegistry;
@@ -59,9 +58,10 @@ public:
   }
   int GetEtaGap() const {return mEtaGap;}
 
+  // Class-specific methods.
   void CreateHistos();
 
-  // The template functions are defined in the header to prevent compilation issues.
+  /// The template functions are defined in the header to prevent compilation issues.
   template <int cBin, typename T>
   void FillEventQA(const T& coll, int multi, int sample)
   {
@@ -74,6 +74,10 @@ public:
     mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histZvtx"), coll.posZ());
     mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histMulti"), multi);
     mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histSamples"), sample);
+
+    // LOKI: added just to make the compilator happy...
+    const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]);
+    printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
   }
 
   template <int cBin, typename T>
@@ -97,6 +101,38 @@ public:
                         track.phi(), 1./(track.weightNUA()));
   }
 
+  template <int cBin, int sBin, typename T>
+  void Fill2pProf(const T& correl2p, double weight2p)
+  {
+    if (!mHistoRegistry) {
+      LOGF(error, "No histogram manager provided. Quit.");
+      return;
+    }
+
+    for (int iB = 0; iB < 6; iB++) {
+      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("Full/prof2pCorrel"),
+                          iB+0.5, correl2p[iB], weight2p);
+      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST(mSamples[sBin])+HIST("prof2pCorrel"),
+                          iB+0.5, correl2p[iB], weight2p);
+    }
+  }
+
+  template <int cBin, int sBin, typename T>
+  void Fill2hProf(const T& correl2h, const T& weight2h)
+  {
+    if (!mHistoRegistry) {
+      LOGF(error, "No histogram manager provided. Quit.");
+      return;
+    }
+
+    for (int iB = 0; iB < 14; iB++) {
+      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("Full/prof2hCorrel"),
+                          iB+0.5, correl2h[iB], weight2h[iB]);
+      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST(mSamples[sBin])+HIST("prof2hCorrel"),
+                          iB+0.5, correl2h[iB], weight2h[iB]);
+    }
+  }
+
 private:
   HistogramRegistry *mHistoRegistry = nullptr;  ///< QA + analysis output.
   int mNsamples = 10;   ///< Number of samples for the bootstrap.
@@ -107,6 +143,13 @@ private:
     "Centrality_10-20/", "Centrality_20-30/", "Centrality_30-40/", "Centrality_40-50/",
     "Centrality_50-60/"
   };
+  static constexpr std::string_view mSamples[] = {
+    "Sample00/", "Sample01/", "Sample02/", "Sample03/", "Sample04/", "Sample05/",
+    "Sample06/", "Sample07/", "Sample08/", "Sample09/", "Sample10/", "Sample11/",
+    "Sample12/", "Sample13/", "Sample14/", "Sample15/", "Sample16/", "Sample17/",
+    "Sample18/", "Sample19/"
+  };
+
 
   ClassDefNV(JAC2hHistManager, 1);  
 };

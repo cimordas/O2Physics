@@ -32,6 +32,7 @@
 
 #include "PWGCF/JCorran/DataModel/JCatalyst.h"
 #include "PWGCF/JCorran/Core/JAC2hHistManager.h"
+#include "PWGCF/JCorran/Core/JAC2hAnalysis.h"
 
 using namespace o2;
 using namespace o2::framework;
@@ -44,6 +45,7 @@ struct jAC2hAnalysisTask {
   Configurable<int> cfgNsamples{"cfgNsamples", 10, "Number of bootstrap samples"};
   Configurable<int> cfgMultiMin{"cfgMultiMin", 10, "Low multiplicity cut"};
   Configurable<float> cfgEtaGap{"cfgEtaGap", 1.0, "Minimum value for the eta gap"};
+  Configurable<int> cfgDebugLvl{"cfgDebugLvl", 1, "Verbosity (0: min, 1: low, 2: high)"};
 
   // Filters.
 
@@ -56,6 +58,7 @@ struct jAC2hAnalysisTask {
 
   // Variables.
   JAC2hHistManager myHistoManager;
+  JAC2hAnalysis myACanalysis;
 
   void init(InitContext const&)
   {
@@ -63,12 +66,17 @@ struct jAC2hAnalysisTask {
     myHistoManager.SetHistManager(&myHistoRegistry);
     myHistoManager.SetNsamples(cfgNsamples);
     myHistoManager.SetEtaGap(cfgEtaGap);
-
     myHistoManager.CreateHistos();
 
-    // LOKI: added just to make the compilator happy...
-    const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]);
-    printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
+    // Initialize the analysis task.
+    myACanalysis.SetAC2hHistManager(myHistoManager);
+    myACanalysis.SetDebugLevel(cfgDebugLvl);
+    myACanalysis.InitArrays();
+
+    if (cfgDebugLvl > 2) {
+      const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]); //LOKI
+      printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
+    }
   }
 
   void process(MyCollision const& collision, aod::ParticleTrack const& tracks)
@@ -78,8 +86,10 @@ struct jAC2hAnalysisTask {
 
     if (nTracks == 0) {return;}
     if ((collision.cbin() < 0) || (collision.cbin() > 8)) {return;}
-    printf("Number of tracks in this event: %d\n", nTracks);
-    printf("Centrality bin: %d\n", collision.cbin());
+    if (cfgDebugLvl == 1) {
+      printf("Number of tracks in this event: %d\n", nTracks);
+      printf("Centrality bin: %d\n", collision.cbin());
+    }
 
     // Fill the centrality distribution received from the catalyst.
     // No personal cut has been applied at this point.
@@ -91,11 +101,10 @@ struct jAC2hAnalysisTask {
 
     // Attribute a bootstrap sample to this collision from a uniform distribution.
     int mySample = static_cast<int>(gRandom->Uniform(0, cfgNsamples));
-    printf("Sample: %d\n", mySample);
+    if (cfgDebugLvl == 1) {printf("Sample: %d\n", mySample);}
 
     // Save the azimuthal angles and particle weights in dynamic arrays, then
-    // compute the multiparticle correlators for this event and fill all the
-    // profiles and QA histograms. 
+    // fill all the profiles and QA histograms. 
     // The EventQA is filled only for the first track of the loop.
     double *myPhi = new double[nTracks]();
     double *myPartWeights = new double[nTracks]();
@@ -105,7 +114,10 @@ struct jAC2hAnalysisTask {
     for (auto& track : tracks) {
       myPhi[iTrack] = track.phi();
       myPartWeights[iTrack] = 1./(track.weightEff() * track.weightNUA());
-      printf("iTrack: %d Phi: %.2f Weight: %.2f\n", iTrack, myPhi[iTrack], myPartWeights[iTrack]);
+      if (cfgDebugLvl == 2) {
+        printf("iTrack: %d Phi: %.2f Weight: %.2f\n",
+                iTrack, myPhi[iTrack], myPartWeights[iTrack]);
+      }
 
       switch (collision.cbin()) {
       case 0:
@@ -148,7 +160,12 @@ struct jAC2hAnalysisTask {
 
       // Indicate when the first track of the collision has been analysed.
       if (isFirstTrack) {isFirstTrack = false;}
+      iTrack++;
     } // Go to the next track.
+
+    // Compute the multiparticle correlators, starting with the Q-vectors.
+    myACanalysis.CalculateQvectors(nTracks, myPhi, myPartWeights);
+    myACanalysis.ComputeAllTerms(collision.cbin(), mySample);
 
     // Reset all event-related quantities for the next collision.
     delete[] myPhi;

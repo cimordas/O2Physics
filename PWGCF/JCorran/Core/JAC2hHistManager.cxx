@@ -32,9 +32,6 @@ void JAC2hHistManager::CreateHistos()
     return;
   }
 
-  const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]); //LOKI
-  printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
-
   // All histograms are defined for the first centrality class in details, with
   // callSumw2 set to true for all. They will be cloned later for all the other
   // classes.
@@ -58,6 +55,9 @@ void JAC2hHistManager::CreateHistos()
   const AxisSpec axisSamples{mNsamples, 0., (double)mNsamples, "Sample"};
   mHistoRegistry->add("Centrality_00-01/QA/histSamples", "N_{events} in each bootstrap sample",
                       HistType::kTH1I, {axisSamples}, true);
+  for (int i = 1; i <= mNsamples; i++) {
+    mHistoRegistry->get<TH1>(HIST("Centrality_00-01/QA/histSamples"))->GetXaxis()->SetBinLabel(i, Form("%d", i-1));
+  }
 
   /// Track distributions.
   std::vector<double> ptBinning = {0., 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
@@ -88,12 +88,16 @@ void JAC2hHistManager::CreateHistos()
 */
 
   /// Profiles for the 2-particle and 2-harmonic terms.
-  const AxisSpec axis2pCorrel{8, 0., 8., "n"};
+  const AxisSpec axis2pCorrel{6, 0., 6., "n"};
   mHistoRegistry->add("Centrality_00-01/Full/prof2pCorrel", "<v_{n}^{2}>",
                       HistType::kTProfile, {axis2pCorrel}, true);
   mHistoRegistry->add("Centrality_00-01/Full/prof2pCorrelEta",
                       ("<v_{n}^{2}> |#it{#Delta #eta}| > " + std::to_string(mEtaGap)).c_str(),
                       HistType::kTProfile, {axis2pCorrel}, true);
+  for (int i = 1; i <= 6; i++) {
+    mHistoRegistry->get<TProfile>(HIST("Centrality_00-01/Full/prof2pCorrel"))->GetXaxis()->SetBinLabel(i, Form("v_{%d}", i));
+    mHistoRegistry->get<TProfile>(HIST("Centrality_00-01/Full/prof2pCorrelEta"))->GetXaxis()->SetBinLabel(i, Form("v_{%d}", i));
+  }
 
   const AxisSpec axis2hCorrel{14, 0., 14., "{a,b}"};
   mHistoRegistry->add("Centrality_00-01/Full/prof2hCorrel", "<v_{m}^{2a}v_{n}^{2b}>",
