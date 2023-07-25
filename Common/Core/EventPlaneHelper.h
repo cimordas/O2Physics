@@ -18,8 +18,8 @@
 ///         calculations with FIT.
 ///
 
-#ifndef O2_ANALYSIS_EVENTPLANEHELPER_H_
-#define O2_ANALYSIS_EVENTPLANEHELPER_H_
+#ifndef O2_ANALYSIS_EVENTPLANEHELPER_H
+#define O2_ANALYSIS_EVENTPLANEHELPER_H
 
 #include "TNamed.h"
 

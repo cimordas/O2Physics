@@ -54,7 +54,9 @@ namespace ep
     "Centrality_30-40/", "Centrality_40-50/", "Centrality_50-60/", "Centrality_60-80/"
   };
 
-  static constexpr std::string_view detNames[] = {"FT0A", "FT0C", "FV0A"};
+  static constexpr std::string_view detNames[] = {
+    "FT0A", "FT0C", "FV0A", "BPos", "BNeg"
+  };
 } // namespace ep
 
 struct evtPlanesTable {
@@ -94,6 +96,12 @@ struct evtPlanesTable {
     histosQA.add("Centrality_0-5/histEPFV0A",
       ("#Psi_{2} for " + (std::string)ep::detNames[2] + (std::string)cfgCorrStep).c_str(),
       HistType::kTH1D, {axisEP});
+    histosQA.add("Centrality_0-5/histEPBNeg",
+      ("#Psi_{2} for " + (std::string)ep::detNames[3] + (std::string)cfgCorrStep).c_str(),
+      HistType::kTH1D, {axisEP});
+    histosQA.add("Centrality_0-5/histEPBPos",
+      ("#Psi_{2} for " + (std::string)ep::detNames[4] + (std::string)cfgCorrStep).c_str(),
+      HistType::kTH1D, {axisEP});
 
     for (int iBin = 1; iBin < 8; iBin++) {
       histosQA.addClone("Centrality_0-5/", ep::centClasses[iBin].data());
@@ -118,12 +126,15 @@ struct evtPlanesTable {
 
     // Calculate the event plane for each detector, then save them in the
     // corresponding distribution. The order is the same as in detNames[].
-    float evtPlaneValues[3] = {0.};
+    // TODO: Update the calculation of the event plane for the central barrel.
+    float evtPlaneValues[5] = {0.};
     evtPlaneValues[0] = helperEP.GetEventPlane(qVec.qvecFT0ARe(), qVec.qvecFT0AIm());
     evtPlaneValues[1] = helperEP.GetEventPlane(qVec.qvecFT0CRe(), qVec.qvecFT0CIm());
     evtPlaneValues[2] = helperEP.GetEventPlane(qVec.qvecFV0ARe(), qVec.qvecFV0AIm());
+    evtPlaneValues[3] = helperEP.GetEventPlane(1., 1.);
+    evtPlaneValues[4] = helperEP.GetEventPlane(1., 1.);
 
-    static_for<0,2>([&](auto iDet) {
+    static_for<0,4>([&](auto iDet) {
       constexpr int indexDet = iDet.value;
       switch(centBin) {
         case 0: fillHistosQA<0,indexDet>(evtPlaneValues); break;
@@ -140,10 +151,8 @@ struct evtPlanesTable {
 
     // Fill the columns of the evtPlane table.
     evPlane(qVec.cent(),
-            evtPlaneValues[0],
-            evtPlaneValues[1],
-            evtPlaneValues[2]);
-
+            evtPlaneValues[0], evtPlaneValues[1], evtPlaneValues[2],
+            evtPlaneValues[3], evtPlaneValues[4]);
   } // void process(aod::Qvector const& qVec)
 
 };

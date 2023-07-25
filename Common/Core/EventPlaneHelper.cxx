@@ -179,3 +179,9 @@ float EventPlaneHelper::GetEventPlane(const float qx, const float qy)
 {
   return (TMath::ATan2(qy, qx))/2.;
 }
+/*
+void EventPlaneHelper::GetResolution()
+{
+  return
+}
+*/
