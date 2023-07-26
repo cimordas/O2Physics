@@ -53,6 +53,8 @@ namespace ep
   static constexpr std::string_view detNames[] = {
     "FT0A", "FT0C", "FV0A", "BPos", "BNeg"
   };
+
+  static constexpr std::string_view subEvents[] = {"A-B", "A-C", "B-C"};
 } // namespace ep
 
 struct evtPlanesResolution {
@@ -82,6 +84,10 @@ struct evtPlanesResolution {
     histosQA.add("Centrality_0-5/profCosFV0A",
       ("Average cosines for " + (std::string)ep::detNames[2]).c_str(),
       HistType::kTProfile, {axisEP});
+
+    for (int i = 1; i <= 3; i++) {
+      histosQA.get<TProfile>(HIST("Centrality_0-5/profCosFT0A"))->GetXaxis()->SetBinLabel(i, ep::subEvents[i-1]);
+    }
 
     for (int iBin = 1; iBin < 8; iBin++) {
       histosQA.addClone("Centrality_0-5/", ep::centClasses[iBin].data());
@@ -143,9 +149,12 @@ struct evtPlanesResolution {
           fillProfCos<7, detFIT>(epFIT[detFIT], evPl.evtPlBPos(), evPl.evtPlBNeg());
           break;
         } // End switch(centBin)
-      });
+      }); // Go to the next detector.
 
     } // Go to the next evPl.
+
+    // Calculate the resolution with the 3-subevent method using the profiles
+    // filled just before.
 
   }   // End void process(...)
 };
