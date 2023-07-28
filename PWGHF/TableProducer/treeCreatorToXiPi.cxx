@@ -124,6 +124,8 @@ DECLARE_SOA_COLUMN(StatusInvMassLambda, statusInvMassLambda, bool);
 DECLARE_SOA_COLUMN(StatusInvMassCascade, statusInvMassCascade, bool);
 DECLARE_SOA_COLUMN(StatusInvMassOmegac, statusInvMassOmegac, bool);
 DECLARE_SOA_COLUMN(ResultSelections, resultSelections, bool);
+DECLARE_SOA_COLUMN(PidTpcInfoStored, pidTpcInfoStored, int);
+DECLARE_SOA_COLUMN(PidTofInfoStored, pidTofInfoStored, int);
 DECLARE_SOA_COLUMN(TpcNSigmaPiFromOmega, tpcNSigmaPiFromOmega, float);
 DECLARE_SOA_COLUMN(TpcNSigmaPiFromCasc, tpcNSigmaPiFromCasc, float);
 DECLARE_SOA_COLUMN(TpcNSigmaPiFromLambda, tpcNSigmaPiFromLambda, float);
@@ -132,9 +134,10 @@ DECLARE_SOA_COLUMN(TofNSigmaPiFromOmega, tofNSigmaPiFromOmega, float);
 DECLARE_SOA_COLUMN(TofNSigmaPiFromCasc, tofNSigmaPiFromCasc, float);
 DECLARE_SOA_COLUMN(TofNSigmaPiFromLambda, tofNSigmaPiFromLambda, float);
 DECLARE_SOA_COLUMN(TofNSigmaPrFromLambda, tofNSigmaPrFromLambda, float);
+
 } // namespace full
 
-DECLARE_SOA_TABLE(HfToXiPiFull, "AOD", "HFTOXIPIFULL",
+DECLARE_SOA_TABLE(HfToXiPiFulls, "AOD", "HFTOXIPIFULL",
                   full::CollisionId, full::XPv, full::YPv, full::ZPv, collision::NumContrib,
                   full::XDecayVtxOmegac, full::YDecayVtxOmegac, full::ZDecayVtxOmegac,
                   full::XDecayVtxCascade, full::YDecayVtxCascade, full::ZDecayVtxCascade,
@@ -161,12 +164,12 @@ DECLARE_SOA_TABLE(HfToXiPiFull, "AOD", "HFTOXIPIFULL",
                   full::DcaZToPvV0Dau0, full::DcaZToPvV0Dau1, full::DcaZToPvCascDau,
                   full::DcaCascDau, full::DcaV0Dau, full::DcaOmegacDau,
                   full::StatusPidLambda, full::StatusPidCascade, full::StatusPidOmegac,
-                  full::StatusInvMassLambda, full::StatusInvMassCascade, full::StatusInvMassOmegac, full::ResultSelections,
+                  full::StatusInvMassLambda, full::StatusInvMassCascade, full::StatusInvMassOmegac, full::ResultSelections, full::PidTpcInfoStored, full::PidTofInfoStored,
                   full::TpcNSigmaPiFromOmega, full::TpcNSigmaPiFromCasc, full::TpcNSigmaPiFromLambda, full::TpcNSigmaPrFromLambda,
                   full::TofNSigmaPiFromOmega, full::TofNSigmaPiFromCasc, full::TofNSigmaPiFromLambda, full::TofNSigmaPrFromLambda,
                   full::FlagMcMatchRec, full::DebugMcRec);
 
-DECLARE_SOA_TABLE(HfToXiPiEvents, "AOD", "HFTOXIPIEVENTS",
+DECLARE_SOA_TABLE(HfToXiPiEvents, "AOD", "HFTOXIPIEVENT",
                   collision::NumContrib,
                   collision::PosX,
                   collision::PosY,
@@ -176,7 +179,7 @@ DECLARE_SOA_TABLE(HfToXiPiEvents, "AOD", "HFTOXIPIEVENTS",
 /// Writes the full information in an output TTree
 struct HfTreeCreatorToXiPi {
 
-  Produces<o2::aod::HfToXiPiFull> rowCandidateFull;
+  Produces<o2::aod::HfToXiPiFulls> rowCandidateFull;
   Produces<o2::aod::HfToXiPiEvents> rowCandidateEvents;
 
   void init(InitContext const&)
@@ -287,6 +290,8 @@ struct HfTreeCreatorToXiPi {
       candidate.statusInvMassCascade(),
       candidate.statusInvMassOmegac(),
       candidate.resultSelections(),
+      candidate.pidTpcInfoStored(),
+      candidate.pidTofInfoStored(),
       candidate.tpcNSigmaPiFromOmega(),
       candidate.tpcNSigmaPiFromCasc(),
       candidate.tpcNSigmaPiFromLambda(),

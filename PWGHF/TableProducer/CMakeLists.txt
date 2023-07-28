@@ -92,7 +92,7 @@ o2physics_add_dpl_workflow(candidate-selector-d0
 
 o2physics_add_dpl_workflow(candidate-selector-dplus-to-pi-k-pi
                     SOURCES candidateSelectorDplusToPiKPi.cxx
-                    PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                    PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore O2Physics::MLCore
                     COMPONENT_NAME Analysis)
 
 o2physics_add_dpl_workflow(candidate-selector-ds-to-k-k-pi
@@ -117,7 +117,7 @@ o2physics_add_dpl_workflow(candidate-selector-lc-ml
 
 o2physics_add_dpl_workflow(candidate-selector-lc-to-k0s-p
                     SOURCES candidateSelectorLcToK0sP.cxx
-                    PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                    PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore O2Physics::MLCore
                     COMPONENT_NAME Analysis)
 
 o2physics_add_dpl_workflow(candidate-selector-to-xi-pi
@@ -157,6 +157,11 @@ o2physics_add_dpl_workflow(tree-creator-dplus-to-pi-k-pi
                     PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
                     COMPONENT_NAME Analysis)
 
+o2physics_add_dpl_workflow(tree-creator-ds-to-k-k-pi
+                    SOURCES treeCreatorDsToKKPi.cxx
+                    PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                    COMPONENT_NAME Analysis)
+
 o2physics_add_dpl_workflow(tree-creator-lb-to-lc-pi
                     SOURCES treeCreatorLbToLcPi.cxx
                     PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
@@ -177,7 +182,14 @@ o2physics_add_dpl_workflow(tree-creator-to-xi-pi
                     PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
                     COMPONENT_NAME Analysis)
 
+o2physics_add_dpl_workflow(tree-creator-xic-to-p-k-pi
+                    SOURCES treeCreatorXicToPKPi.cxx
+                    PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
+                    COMPONENT_NAME Analysis)
+
 o2physics_add_dpl_workflow(tree-creator-xicc-to-p-k-pi-pi
                     SOURCES treeCreatorXiccToPKPiPi.cxx
                     PUBLIC_LINK_LIBRARIES O2Physics::AnalysisCore
                     COMPONENT_NAME Analysis)
+
+
