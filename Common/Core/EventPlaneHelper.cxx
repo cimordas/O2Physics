@@ -179,9 +179,12 @@ float EventPlaneHelper::GetEventPlane(const float qx, const float qy)
 {
   return (TMath::ATan2(qy, qx))/2.;
 }
-/*
-void EventPlaneHelper::GetResolution()
+
+double EventPlaneHelper::GetResolution(const std::shared_ptr<TProfile> prof)
 {
-  return
+  double avgAB = prof->GetBinContent(1);
+  double avgAC = prof->GetBinContent(2);
+  double avgBC = prof->GetBinContent(3);
+
+  return (avgAB - avgAC)/avgBC;
 }
-*/

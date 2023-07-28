@@ -25,6 +25,7 @@
 
 #include <TComplex.h>
 #include <TH2D.h>
+#include <TProfile.h>
 
 class EventPlaneHelper
 {
@@ -71,6 +72,9 @@ public:
 
   // Method to calculate the event plane from the provided (Qx, Qy), for n = 2.
   float GetEventPlane(const float qx, const float qy);
+
+  // Method to calculate the resolution R2 for the provided profile.
+  double GetResolution(const std::shared_ptr<TProfile> prof);
 
 private:
   double mOffsetFT0AX = 0.;       // X-coordinate of the offset of FT0-A.

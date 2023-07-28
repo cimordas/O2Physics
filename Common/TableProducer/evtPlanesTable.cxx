@@ -131,8 +131,8 @@ struct evtPlanesTable {
     evtPlaneValues[0] = helperEP.GetEventPlane(qVec.qvecFT0ARe(), qVec.qvecFT0AIm());
     evtPlaneValues[1] = helperEP.GetEventPlane(qVec.qvecFT0CRe(), qVec.qvecFT0CIm());
     evtPlaneValues[2] = helperEP.GetEventPlane(qVec.qvecFV0ARe(), qVec.qvecFV0AIm());
-    evtPlaneValues[3] = helperEP.GetEventPlane(1., 1.);
-    evtPlaneValues[4] = helperEP.GetEventPlane(1., 1.);
+    evtPlaneValues[3] = helperEP.GetEventPlane(1., 2.);
+    evtPlaneValues[4] = helperEP.GetEventPlane(2., 1.);
 
     static_for<0,4>([&](auto iDet) {
       constexpr int indexDet = iDet.value;

@@ -39,6 +39,7 @@
 #include <TComplex.h>
 #include <TProfile.h>
 #include <TMath.h>
+#include <TH1F.h>
 
 using namespace o2;
 using namespace o2::framework;
@@ -84,9 +85,14 @@ struct evtPlanesResolution {
     histosQA.add("Centrality_0-5/profCosFV0A",
       ("Average cosines for " + (std::string)ep::detNames[2]).c_str(),
       HistType::kTProfile, {axisEP});
+    histosQA.add("Centrality_0-5/histRes2", "R_{2} for all FIT detectors",
+      HistType::kTH1D, {axisEP}); // Each bin contains one detector.
 
     for (int i = 1; i <= 3; i++) {
-      histosQA.get<TProfile>(HIST("Centrality_0-5/profCosFT0A"))->GetXaxis()->SetBinLabel(i, ep::subEvents[i-1]);
+      histosQA.get<TProfile>(HIST("Centrality_0-5/profCosFT0A"))->GetXaxis()->SetBinLabel(i, ep::subEvents[i-1].data());
+      histosQA.get<TProfile>(HIST("Centrality_0-5/profCosFT0C"))->GetXaxis()->SetBinLabel(i, ep::subEvents[i-1].data());
+      histosQA.get<TProfile>(HIST("Centrality_0-5/profCosFV0A"))->GetXaxis()->SetBinLabel(i, ep::subEvents[i-1].data());
+      histosQA.get<TH1>(HIST("Centrality_0-5/histRes2"))->GetXaxis()->SetBinLabel(i, ep::detNames[i-1].data());
     }
 
     for (int iBin = 1; iBin < 8; iBin++) {
@@ -155,6 +161,16 @@ struct evtPlanesResolution {
 
     // Calculate the resolution with the 3-subevent method using the profiles
     // filled just before.
+    static_for<0,7>([&](auto iCent) {
+      constexpr int bin = iCent.value;
+      double res = helperEP.GetResolution(histosQA.get<TProfile>(HIST(ep::centClasses[bin])+HIST("profCosFT0A")));
+      printf("Res FT0A: %e\n", res);
+      histosQA.get<TH1>(HIST(ep::centClasses[bin])+HIST("histRes2"))->SetBinContent(1, res);
+      res = helperEP.GetResolution(histosQA.get<TProfile>(HIST(ep::centClasses[bin])+HIST("profCosFT0C")));
+      histosQA.get<TH1>(HIST(ep::centClasses[bin])+HIST("histRes2"))->SetBinContent(2, res);
+      res = helperEP.GetResolution(histosQA.get<TProfile>(HIST(ep::centClasses[bin])+HIST("profCosFV0A")));
+      histosQA.get<TH1>(HIST(ep::centClasses[bin])+HIST("histRes2"))->SetBinContent(3, res);
+    });
 
   }   // End void process(...)
 };
