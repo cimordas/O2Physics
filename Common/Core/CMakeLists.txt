@@ -18,6 +18,7 @@ o2physics_add_library(AnalysisCore
                        TrackSelectionDefaults.cxx
                PUBLIC_LINK_LIBRARIES O2::Framework ROOT::EG O2::CCDB ROOT::Physics O2::FT0Base O2::FV0Base)
 
+
 o2physics_target_root_dictionary(AnalysisCore
               HEADERS   TrackSelection.h
                         TrackSelectionDefaults.h
