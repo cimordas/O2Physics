@@ -57,6 +57,12 @@ public:
     LOGF(info, "Eta gap set to %.1f.", mEtaGap);
   }
   int GetEtaGap() const {return mEtaGap;}
+  void SetNcombis2h(int myCombis)
+  {
+    mNcombis2h = myCombis;
+    LOGF(info, "Number of pairs of harmos set to %d.", mNcombis2h);
+  }
+  int GetNcombis2h() const {return mNcombis2h;}
 
   // Class-specific methods.
   void CreateHistos();
@@ -117,7 +123,7 @@ public:
     }
   }
 
-  template <int cBin, int sBin, typename T>
+  template <int cBin, int sBin, int pBin, typename T>
   void Fill2hProf(const T& correl2h, const T& weight2h)
   {
     if (!mHistoRegistry) {
@@ -125,18 +131,21 @@ public:
       return;
     }
 
+    static constexpr std::string_view combis[] = {"Combi1", "Combi2", "Combi3"};
+
     for (int iB = 0; iB < 14; iB++) {
-      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("Full/prof2hCorrel"),
+      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("Full/prof2hCorrel")+HIST(combis[pBin]),
                           iB+0.5, correl2h[iB], weight2h[iB]);
-      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST(mSamples[sBin])+HIST("prof2hCorrel"),
+      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST(mSamples[sBin])+HIST("prof2hCorrel")+HIST(combis[pBin]),
                           iB+0.5, correl2h[iB], weight2h[iB]);
     }
   }
 
 private:
   HistogramRegistry *mHistoRegistry = nullptr;  ///< QA + analysis output.
-  int mNsamples = 10;   ///< Number of samples for the bootstrap.
+  int mNsamples = 20;   ///< Number of samples for the bootstrap.
   float mEtaGap = 1.0;  ///< Value of the pseudorapidity gap.
+  int mNcombis2h = 3;   ///< Number of pairs of harmonics.
 
   static constexpr std::string_view mCentClasses[] = {  // Classes from JCatalyst.
     "Centrality_00-01/", "Centrality_01-02/", "Centrality_02-05/", "Centrality_05-10/",
@@ -149,7 +158,10 @@ private:
     "Sample12/", "Sample13/", "Sample14/", "Sample15/", "Sample16/", "Sample17/",
     "Sample18/", "Sample19/"
   };
-
+  static constexpr std::string_view mPowers[] = {
+    "{1,1}", "{2,2}", "{2,0}", "{2,1}", "{3,0}", "{3,1}", "{4,0}", "{4,1}",
+                      "{0,2}", "{1,2}", "{0,3}", "{1,3}", "{0,4}", "{1,4}"
+  };
 
   ClassDefNV(JAC2hHistManager, 1);  
 };

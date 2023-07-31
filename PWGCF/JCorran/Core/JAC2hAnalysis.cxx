@@ -201,39 +201,39 @@ void JAC2hAnalysis::ComputeAllTerms(const int myCent, const int mySample)
       switch (myCent) {
       case 0:
         mAC2hHistManager.Fill2pProf<0,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<0,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<0,indexS,0>(correl2h, eWeight2h);
         break;
       case 1:
         mAC2hHistManager.Fill2pProf<1,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<1,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<1,indexS,0>(correl2h, eWeight2h);
         break;
       case 2:
         mAC2hHistManager.Fill2pProf<2,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<2,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<2,indexS,0>(correl2h, eWeight2h);
         break;
       case 3:
         mAC2hHistManager.Fill2pProf<3,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<3,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<3,indexS,0>(correl2h, eWeight2h);
         break;
       case 4:
         mAC2hHistManager.Fill2pProf<4,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<4,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<4,indexS,0>(correl2h, eWeight2h);
         break;
       case 5:
         mAC2hHistManager.Fill2pProf<5,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<5,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<5,indexS,0>(correl2h, eWeight2h);
         break;
       case 6:
         mAC2hHistManager.Fill2pProf<6,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<6,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<6,indexS,0>(correl2h, eWeight2h);
         break;
       case 7:
         mAC2hHistManager.Fill2pProf<7,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<7,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<7,indexS,0>(correl2h, eWeight2h);
         break;
       case 8:
         mAC2hHistManager.Fill2pProf<8,indexS>(correl2p, eventWeights[iEW]);
-        mAC2hHistManager.Fill2hProf<8,indexS>(correl2h, eWeight2h);
+        mAC2hHistManager.Fill2hProf<8,indexS,0>(correl2h, eWeight2h);
         break;
       }
     }

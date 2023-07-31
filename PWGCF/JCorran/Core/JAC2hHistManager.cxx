@@ -99,9 +99,19 @@ void JAC2hHistManager::CreateHistos()
     mHistoRegistry->get<TProfile>(HIST("Centrality_00-01/Full/prof2pCorrelEta"))->GetXaxis()->SetBinLabel(i, Form("v_{%d}", i));
   }
 
-  const AxisSpec axis2hCorrel{14, 0., 14., "{a,b}"};
-  mHistoRegistry->add("Centrality_00-01/Full/prof2hCorrel", "<v_{m}^{2a}v_{n}^{2b}>",
+  const AxisSpec axis2hCorrel{14, 0., 14., "/{a,b/}"};
+  mHistoRegistry->add("Centrality_00-01/Full/prof2hCorrelCombi1",
+                      "<v_{m}^{2a}v_{n}^{2b}>",
                       HistType::kTProfile, {axis2hCorrel}, true);
+  for (int i = 1; i <= 14; i++) {
+    mHistoRegistry->get<TProfile>(HIST("Centrality_00-01/Full/prof2hCorrelCombi1"))
+      ->GetXaxis()->SetBinLabel(i, Form("%s", mPowers[i-1].data()));
+  }
+  for (int iC = 2; iC <= mNcombis2h; iC++) {
+    std::string strSample = Form("Centrality_00-01/Full/prof2hCorrelCombi%d", iC);
+    mHistoRegistry->addClone("Centrality_00-01/Full/prof2hCorrelCombi1", strSample.data());
+  }
+
 
   // Clone the full profiles for all the samples.
   for (int iS = 0; iS < mNsamples; iS++) {

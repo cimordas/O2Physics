@@ -13,59 +13,78 @@
 /// \author Cindy Mordasini (cindy.mordasini@cern.ch)
 /// \since  July 2023
 
-// Includes.
-#include "TRandom3.h"
+// Header files.
+#include <TRandom3.h>
 
-#include "Framework/AnalysisDataModel.h"
-#include "Framework/AnalysisTask.h"
-#include "Framework/ASoAHelpers.h"
-#include <CCDB/BasicCCDBManager.h>
-#include "Framework/HistogramRegistry.h"
+/* O2 headers. */
+/// Those two headers files are mandatory.
 #include "Framework/runDataProcessing.h"
-#include "Framework/RunningWorkflowInfo.h"
+#include "Framework/AnalysisTask.h"
 
-#include "Common/DataModel/Centrality.h"
-#include "Common/DataModel/EventSelection.h"
-#include "Common/Core/TrackSelection.h"
-#include "Common/DataModel/TrackSelectionTables.h"
-#include "ReconstructionDataFormats/V0.h"
+#include <CCDB/BasicCCDBManager.h>
+#include "Framework/AnalysisDataModel.h"
+#include "Framework/HistogramRegistry.h"
 
+/* O2Physics headers. */
+
+/* JCorran headers. */
 #include "PWGCF/JCorran/DataModel/JCatalyst.h"
-#include "PWGCF/JCorran/Core/JAC2hHistManager.h"
-#include "PWGCF/JCorran/Core/JAC2hAnalysis.h"
 
+#include "PWGCF/JCorran/Core/JAC2hAnalysis.h"
+#include "PWGCF/JCorran/Core/JAC2hHistManager.h"
+
+// Namespaces.
 using namespace o2;
 using namespace o2::framework;
 using namespace o2::analysis::PWGCF;
 
-using MyCollision = soa::Join<aod::Collisions, aod::CollisionData>::iterator;
+using JCollision = soa::Join<aod::Collisions, aod::CollisionData>::iterator;
 
-struct jAC2hAnalysisTask {
-  // Configurables.
-  Configurable<int> cfgNsamples{"cfgNsamples", 10, "Number of bootstrap samples"};
-  Configurable<int> cfgMultiMin{"cfgMultiMin", 10, "Low multiplicity cut"};
-  Configurable<float> cfgEtaGap{"cfgEtaGap", 1.0, "Minimum value for the eta gap"};
-  Configurable<int> cfgDebugLvl{"cfgDebugLvl", 1, "Verbosity (0: min, 1: low, 2: high)"};
+/// #include "Framework/ASoAHelpers.h"
+/// #include "Framework/RunningWorkflowInfo.h"
 
-  // Filters.
+// #include "Common/DataModel/Centrality.h"
+// #include "Common/DataModel/EventSelection.h"
+// #include "Common/Core/TrackSelection.h"
+// #include "Common/DataModel/TrackSelectionTables.h"
+// #include "ReconstructionDataFormats/V0.h"
 
-  // Histogram registry for the output objects. They are not saved in
-  // alphabetical order (false), and the names are not saved as TDirectoryFile
-  // (false).
-  HistogramRegistry myHistoRegistry{"myHistoRegistry", {},
-                                  OutputObjHandlingPolicy::AnalysisObject,
-                                  true, false};
+// ----------------------------------------------------------------------------
+// The analysis task for the 2h AC starts here.
+// ----------------------------------------------------------------------------
+struct jAC2hAnalysisTask
+{
+    // Variables related to the histogram manager.
+    Configurable<int> cfgMultiMin{"cfgMultiMin", 10, "Low multiplicity cut"};
+    Configurable<int> cfgNsamples{"cfgNsamples", 20, "Number of bootstrap samples"};
+    Configurable<float> cfgEtaGap{"cfgEtaGap", 1.0, "Minimum eta gap value"};
 
-  // Variables.
-  JAC2hHistManager myHistoManager;
-  JAC2hAnalysis myACanalysis;
+    /* Registry for the output objects. They are savev in alphabetical order
+    (true) and not in TDirectoryFile (false). */
+    HistogramRegistry myHistoRegistry{"myHistoRegistry", {},
+        OutputObjHandlingPolicy::AnalysisObject, true, false};
 
+    JAC2hHistManager myHistoManager;
+
+    // Variables related to the analysis calculations.
+    Configurable<int> cfgDebugLvl{"cfgDebugLvl", 2, "Verbosity (0: none, 1: low, 2: high)"};
+
+    JAC2hAnalysis myACanalysis;
+  
+/*
+  static constexpr int list2h[3][2] = {{2, 3}, {2, 4}, {3, 4}};
+  Configurable<int> cfgNcombis2h{"cfgNcombis2h", 3, "Number of pairs of harmos"};
+  Configurable<Array2D<int>> cfgList2h{"cfgList2h", {&list2h[0][0], 3, 2}, "List of 2h pairs"};
+*/
+
+    /// \brief Framework method where the two managers are initialized.
   void init(InitContext const&)
   {
     // Initialize the histograms within the registry itself.
     myHistoManager.SetHistManager(&myHistoRegistry);
     myHistoManager.SetNsamples(cfgNsamples);
     myHistoManager.SetEtaGap(cfgEtaGap);
+    //myHistoManager.SetNcombis2h(cfgNcombis2h);
     myHistoManager.CreateHistos();
 
     // Initialize the analysis task.
@@ -79,14 +98,14 @@ struct jAC2hAnalysisTask {
     }
   }
 
-  void process(MyCollision const& collision, aod::ParticleTrack const& tracks)
+  void process(JCollision const& collision, aod::ParticleTrack const& tracks)
   {
     // Reject the invalid events: no catalyst tracks or invalid centrality.
     int nTracks = tracks.size();
 
     if (nTracks == 0) {return;}
     if ((collision.cbin() < 0) || (collision.cbin() > 8)) {return;}
-    if (cfgDebugLvl == 1) {
+/*    if (cfgDebugLvl == 1) {
       printf("Number of tracks in this event: %d\n", nTracks);
       printf("Centrality bin: %d\n", collision.cbin());
     }
@@ -171,6 +190,7 @@ struct jAC2hAnalysisTask {
     delete[] myPhi;
     delete[] myPartWeights;
     LOGF(info, "Collision analysed. Next...");
+*/
   }
 
 };
