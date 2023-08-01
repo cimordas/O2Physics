@@ -13,118 +13,158 @@
 /// \author Cindy Mordasini (cindy.mordasini@cern.ch)
 /// \since  July 2023
 
-// Includes.
+/* Header files. */
 #include <string>
 #include <vector>
 
+// O2 headers.
+
+// O2Physics headers.
+
+// JCorran headers.
 #include "PWGCF/JCorran/Core/JAC2hHistManager.h"
 
+/* Namespaces. */
 using namespace o2;
 using namespace o2::framework;
 namespace o2::analysis::PWGCF
 {
-/// \brief .
-/// .
-void JAC2hHistManager::CreateHistos()
+/// \brief Create the histograms in the QA registry.
+/// \note QA and AC are created separately to allow to get only the QA if needed.
+void JAC2hHistManager::CreateQAHistos()
 {
-  if (!mHistoRegistry) {
-    LOGF(error, "No histogram manager provided. Quit.");
-    return;
-  }
+    /* Security checks. */
+    if (!mQAHistoRegistry) {
+        LOGF(error, "QA histogram registry missing. Quitting...");
+        return;
+    }
 
-  // All histograms are defined for the first centrality class in details, with
-  // callSumw2 set to true for all. They will be cloned later for all the other
-  // classes.
-  /// Centrality distributions.
-  const AxisSpec axisCent{100, 0., 100., "Centrality percentile"};
-  mHistoRegistry->add("histCentCatalyst", "Centrality from the JCatalyst",
-                      HistType::kTH1F, {axisCent}, true);
-  mHistoRegistry->add("Centrality_00-01/QA/histCent", "Centrality after own cuts",
-                      HistType::kTH1F, {axisCent}, true);
+    /* Define the histograms for the QA and for the AC analysis. */
+    // All histograms are defined for the first centrality class in details,
+    // then cloned for the other centrality classes.
+    const AxisSpec axisCent{100, 0., 100., "Centrality percentile"};
+    mQAHistoRegistry->add("histCentCatalyst", "Centrality from the JCatalyst",
+        HistType::kTH1F, {axisCent}, true);
+    mQAHistoRegistry->add("Centrality_00-01/histCent", "Centrality after AC cuts",
+        HistType::kTH1F, {axisCent}, true);
 
-  /// Event distributions.
-  const AxisSpec axisZvtx{75, -15., 15., "Z_{vtx} [cm]"};
-  mHistoRegistry->add("Centrality_00-01/QA/histZvtx", "Z_{vtx} after own cuts",
-                      HistType::kTH1F, {axisZvtx}, true);
+    const AxisSpec axisZvtx{75, -15., 15., "Z_{vtx} [cm]"};
+    mQAHistoRegistry->add("Centrality_00-01/histZvtx", "Z_{vtx} after AC cuts",
+        HistType::kTH1F, {axisZvtx}, true);
 
-  const AxisSpec axisMulti{1000, 0., 5000., "N_{tracks}"};
-  mHistoRegistry->add("Centrality_00-01/QA/histMulti", "Multiplicity after own cuts",
-                      HistType::kTH1I, {axisMulti}, true);
+    const AxisSpec axisMulti{1000, 0., 5000., "N_{tracks}"};
+    mQAHistoRegistry->add("Centrality_00-01/histMulti", "Multiplicity after AC cuts",
+        HistType::kTH1I, {axisMulti}, true);
 
-  /// Number of events for each bootstrap sample.
-  const AxisSpec axisSamples{mNsamples, 0., (double)mNsamples, "Sample"};
-  mHistoRegistry->add("Centrality_00-01/QA/histSamples", "N_{events} in each bootstrap sample",
-                      HistType::kTH1I, {axisSamples}, true);
-  for (int i = 1; i <= mNsamples; i++) {
-    mHistoRegistry->get<TH1>(HIST("Centrality_00-01/QA/histSamples"))->GetXaxis()->SetBinLabel(i, Form("%d", i-1));
-  }
+    const AxisSpec axisSamples{mNsamples, 0., (double)mNsamples, "Sample ID"};
+    mQAHistoRegistry->add("Centrality_00-01/histSamples", "N_{events} in each bootstrap sample",
+        HistType::kTH1I, {axisSamples}, true);
+    for (int i = 1; i <= mNsamples; i++) {
+        mQAHistoRegistry->get<TH1>(HIST("Centrality_00-01/histSamples"))
+            ->GetXaxis()->SetBinLabel(i, Form("%d", i-1));
+    }
 
-  /// Track distributions.
-  std::vector<double> ptBinning = {0., 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
-                                  0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75,
-                                  0.8, 0.85, 0.9, 0.95, 1., 1.1, 1.2, 1.3, 1.4,
-                                  1.5, 1.6, 1.7, 1.8, 1.9, 2., 2.2, 2.4, 2.6,
-                                  2.8, 3., 3.2, 3.4, 3.6, 3.8, 4., 4.5, 5., 6.};
-  const AxisSpec axisPt = {ptBinning, "#it{p}_{T} [GeV/#it{c}]"};
-  mHistoRegistry->add("Centrality_00-01/QA/histPtUncorrected", "#it{p}_{T} (not NUE corrected)",
-                      HistType::kTH1F, {axisPt}, true);
-  mHistoRegistry->add("Centrality_00-01/QA/histPtCorrected", "#it{p}_{T} (NUE corrected)",
-                      HistType::kTH1F, {axisPt}, true);
-
-  const AxisSpec axisEta = {20, -1., 1., "#eta"};
-  mHistoRegistry->add("Centrality_00-01/QA/histEta", "Pseudorapidity",
-                      HistType::kTH1F, {axisEta}, true);
-
-  const AxisSpec axisPhi = {100, 0., 2.*M_PI, "#varphi"};
-  mHistoRegistry->add("Centrality_00-01/QA/histPhiUncorrected", "Azimuthal angles (not NUA corrected)",
-                      HistType::kTH1F, {axisPhi}, true);
-  mHistoRegistry->add("Centrality_00-01/QA/histPhiCorrected", "Azimuthal angles (NUA corrected)",
-                      HistType::kTH1F, {axisPhi}, true);
-
-/*  Commented till the charge is implemented in the catalyst.
-  const AxisSpec axisCharge = {2, -1., 1., "Charge"};
-  mHistoRegistry->add("Centrality_00-01/QA/histCharge", "Electric charge",
-                      HistType::kTH1I, {axisCharge}, true);
+/*  If a variable binning is needed.
+    std::vector<double> ptBinning = {0., 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
+                                    0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75,
+                                    0.8, 0.85, 0.9, 0.95, 1., 1.1, 1.2, 1.3, 1.4,
+                                    1.5, 1.6, 1.7, 1.8, 1.9, 2., 2.2, 2.4, 2.6,
+                                    2.8, 3., 3.2, 3.4, 3.6, 3.8, 4., 4.5, 5., 6.};
+    const AxisSpec axisPt = {ptBinning, "#it{p}_{T} [GeV/#it{c}]"};
 */
+    const AxisSpec axisPt = {60, 0., 6., "#it{p}_{T} [GeV/#it{c}]"};
+    mQAHistoRegistry->add("Centrality_00-01/histPtUncorrected", "#it{p}_{T} (not NUE corrected)",
+        HistType::kTH1F, {axisPt}, true);
+    mQAHistoRegistry->add("Centrality_00-01/histPtCorrected", "#it{p}_{T} (NUE corrected)",
+        HistType::kTH1F, {axisPt}, true);
 
-  /// Profiles for the 2-particle and 2-harmonic terms.
-  const AxisSpec axis2pCorrel{6, 0., 6., "n"};
-  mHistoRegistry->add("Centrality_00-01/Full/prof2pCorrel", "<v_{n}^{2}>",
-                      HistType::kTProfile, {axis2pCorrel}, true);
-  mHistoRegistry->add("Centrality_00-01/Full/prof2pCorrelEta",
-                      ("<v_{n}^{2}> |#it{#Delta #eta}| > " + std::to_string(mEtaGap)).c_str(),
-                      HistType::kTProfile, {axis2pCorrel}, true);
-  for (int i = 1; i <= 6; i++) {
-    mHistoRegistry->get<TProfile>(HIST("Centrality_00-01/Full/prof2pCorrel"))->GetXaxis()->SetBinLabel(i, Form("v_{%d}", i));
-    mHistoRegistry->get<TProfile>(HIST("Centrality_00-01/Full/prof2pCorrelEta"))->GetXaxis()->SetBinLabel(i, Form("v_{%d}", i));
-  }
+    const AxisSpec axisEta = {20, -1., 1., "#eta"};
+    mQAHistoRegistry->add("Centrality_00-01/histEta", "Pseudorapidity",
+        HistType::kTH1F, {axisEta}, true);
 
-  const AxisSpec axis2hCorrel{14, 0., 14., "/{a,b/}"};
-  mHistoRegistry->add("Centrality_00-01/Full/prof2hCorrelCombi1",
-                      "<v_{m}^{2a}v_{n}^{2b}>",
-                      HistType::kTProfile, {axis2hCorrel}, true);
-  for (int i = 1; i <= 14; i++) {
-    mHistoRegistry->get<TProfile>(HIST("Centrality_00-01/Full/prof2hCorrelCombi1"))
-      ->GetXaxis()->SetBinLabel(i, Form("%s", mPowers[i-1].data()));
-  }
-  for (int iC = 2; iC <= mNcombis2h; iC++) {
-    std::string strSample = Form("Centrality_00-01/Full/prof2hCorrelCombi%d", iC);
-    mHistoRegistry->addClone("Centrality_00-01/Full/prof2hCorrelCombi1", strSample.data());
-  }
+    const AxisSpec axisPhi = {100, 0., 2.*M_PI, "#varphi"};
+    mQAHistoRegistry->add("Centrality_00-01/histPhiUncorrected", "Azimuthal angles (not NUA corrected)",
+        HistType::kTH1F, {axisPhi}, true);
+    mQAHistoRegistry->add("Centrality_00-01/histPhiCorrected", "Azimuthal angles (NUA corrected)",
+        HistType::kTH1F, {axisPhi}, true);
 
+    const AxisSpec axisCharge = {2, -1., 1., "Charge"};
+    mQAHistoRegistry->add("Centrality_00-01/histCharge", "Electric charge",
+        HistType::kTH1I, {axisCharge}, true);
 
-  // Clone the full profiles for all the samples.
-  for (int iS = 0; iS < mNsamples; iS++) {
-    std::string strSample = Form("Centrality_00-01/Sample%d/", iS);
-    if (iS < 10) {strSample = Form("Centrality_00-01/Sample0%d/", iS);}
-    mHistoRegistry->addClone("Centrality_00-01/Full/", strSample.data());
-  } // Go to the next sample.
+    for (int iBin = 1; iBin < 9; iBin++) {
+        mQAHistoRegistry->addClone("Centrality_00-01/", mCentClasses[iBin].data());
+    }
 
-  // Clone the content of Centrality_00-01 into the other centrality classes.
-  for (int iBin = 1; iBin < 9; iBin++) {
-    mHistoRegistry->addClone("Centrality_00-01/", mCentClasses[iBin].data());
-  }
+    // LOKI: Debug trick to stop the compilation to complain.
+    const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]);
+    printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
+}
 
+/// \brief Create the histograms/profiles in the AC registry.
+void JAC2hHistManager::CreateACHistos()
+{
+    /* Security checks. */
+    if (!mACHistoRegistry) {
+        LOGF(error, "AC histogram registry missing. Quitting...");
+        return;
+    }
+
+    /* Define the histogram bookkeeping the pairs of harmonics as integers. */
+    const AxisSpec axisCombis{mNcombis2h, 0., (double)mNcombis2h, "Pairs"};
+    mACHistoRegistry->add("Centrality_00-01/histCombis", "Configured pairs of harmonics",
+        HistType::kTH1I, {axisCombis}, true);
+    for (int i = 1; i <= mNcombis2h; i++) {
+        mACHistoRegistry->get<TH1>(HIST("Centrality_00-01/histCombis"))
+            ->GetXaxis()->SetBinLabel(i, Form("Combi%d", i-1));
+    }
+
+    /* Define the TProfile2D used to save the multiparticle correlators. */
+    // The x-axis keeps the correlators, the y-axis the full data and samples.
+    // All profiles are defined for the first centrality class in details,
+    // then cloned for the other centrality classes.
+    const AxisSpec axis2pCorrelX{12, 0., 12., "n"};
+    const AxisSpec axis2hCorrelX{14, 0., 14., "Powers"};
+    const AxisSpec axis2pCorrelY{mNsamples+1, 0., (double)mNsamples+1., "Sample ID"};
+    mACHistoRegistry->add("Centrality_00-01/prof2pCorrel", "<v_{n}^{2}>",
+        HistType::kTProfile2D, {axis2pCorrelX, axis2pCorrelY}, true);
+    mACHistoRegistry->add("Centrality_00-01/prof2hCorrelCombi0",
+        "<v_{m}^{2a}v_{n}^{2b}>",
+        HistType::kTProfile2D, {axis2hCorrelX, axis2pCorrelY}, true);
+
+    // The x-axis of 'prof2pCorrel' follows <n, n with gap> for n = 1...6.
+    for (int i = 1; i <= 6; i++) {
+        mACHistoRegistry->get<TProfile2D>(HIST("Centrality_00-01/prof2pCorrel"))
+            ->GetXaxis()->SetBinLabel(2*i-1, Form("v_{%d}", i));
+        mACHistoRegistry->get<TProfile2D>(HIST("Centrality_00-01/prof2pCorrel"))
+            ->GetXaxis()->SetBinLabel(2*i, Form("v_{%d, #Delta#eta}", i));
+    }
+    for (int i = 1; i <= 14; i++) {
+        mACHistoRegistry->get<TProfile2D>(HIST("Centrality_00-01/prof2hCorrelCombi0"))
+            ->GetXaxis()->SetBinLabel(i, Form("%s", mPowers[i-1].data()));
+    }
+
+    // The first y-bin is always the full dataset.
+    mACHistoRegistry->get<TProfile2D>(HIST("Centrality_00-01/prof2pCorrel"))
+        ->GetYaxis()->SetBinLabel(1, "Full");
+    mACHistoRegistry->get<TProfile2D>(HIST("Centrality_00-01/prof2hCorrelCombi0"))
+        ->GetYaxis()->SetBinLabel(1, "Full");
+    for (int i = 2; i <= mNsamples+1; i++) {
+        mACHistoRegistry->get<TProfile2D>(HIST("Centrality_00-01/prof2pCorrel"))
+            ->GetYaxis()->SetBinLabel(i, Form("%d", i-2));
+        mACHistoRegistry->get<TProfile2D>(HIST("Centrality_00-01/prof2hCorrelCombi0"))
+            ->GetYaxis()->SetBinLabel(i, Form("%d", i-2));
+    }
+
+    for (int iH = 1; iH < mNcombis2h; iH++) {
+        std::string strCombi = Form("Centrality_00-01/prof2hCorrelCombi%d", iH);
+        mACHistoRegistry->addClone("Centrality_00-01/prof2hCorrelCombi0",
+            strCombi.data());
+    }
+
+    for (int iBin = 1; iBin < 9; iBin++) {
+        mACHistoRegistry->addClone("Centrality_00-01/", mCentClasses[iBin].data());
+    }
 }
 
 } // namespace o2::analysis::PWGCF

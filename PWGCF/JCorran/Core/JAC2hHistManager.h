@@ -16,152 +16,193 @@
 #ifndef JAC2HHISTMANAGER_H
 #define JAC2HHISTMANAGER_H
 
-// Includes.
+/* Header files. */
+#include <array>
 #include <string>
+#include <vector>
+#include <TH1.h>
+#include <TProfile2D.h>
 
+// O2 headers.
 #include "Framework/AnalysisDataModel.h"
-#include "Framework/AnalysisTask.h"
-#include "Framework/ASoAHelpers.h"
 #include "Framework/HistogramRegistry.h"
-#include "Framework/RunningWorkflowInfo.h"
 
+// O2Physics headers.
+
+// JCorran headers.
 #include "PWGCF/JCorran/DataModel/JCatalyst.h"
 
+/*
+#include "Framework/AnalysisTask.h"
+#include "Framework/ASoAHelpers.h"
+#include "Framework/RunningWorkflowInfo.h"
+*/
+
+/* Namespaces. */
 using namespace o2;
 using namespace o2::framework;
 
+// ----------------------------------------------------------------------------
+// Histogram manager to fill both QA and analysis histogram registries at the
+// same time.
+// ----------------------------------------------------------------------------
 namespace o2::analysis::PWGCF
 {
 class JAC2hHistManager
 {
 public:
-  JAC2hHistManager() = default;   // Constructor.
+    JAC2hHistManager() = default;   // Constructor.
 
-  // Setters and getters.
-  void SetHistManager(HistogramRegistry *myRegistry)
-  {
-    mHistoRegistry = myRegistry;
-    LOGF(info, "Histogram registry has been set.");
-  }
-  HistogramRegistry *GetHistManager() const {return mHistoRegistry;}
+    /* Setters and getters. */
+    void SetQAHistRegistry(HistogramRegistry *myRegistry)
+    {
+        mQAHistoRegistry = myRegistry;
+        LOGF(info, "QA histogram registry successfully set.");
+    }
+    HistogramRegistry *GetQAHistRegistry() const {return mQAHistoRegistry;}
 
-  void SetNsamples(int mySamples)
-  {
-    mNsamples = mySamples;
-    LOGF(info, "Number of samples set to %d.", mNsamples);
-  }
-  int GetNsamples() const {return mNsamples;}
-  void SetEtaGap(int myGap)
-  {
-    mEtaGap = myGap;
-    LOGF(info, "Eta gap set to %.1f.", mEtaGap);
-  }
-  int GetEtaGap() const {return mEtaGap;}
-  void SetNcombis2h(int myCombis)
-  {
-    mNcombis2h = myCombis;
-    LOGF(info, "Number of pairs of harmos set to %d.", mNcombis2h);
-  }
-  int GetNcombis2h() const {return mNcombis2h;}
+    void SetACHistRegistry(HistogramRegistry *myRegistry)
+    {
+        mACHistoRegistry = myRegistry;
+        LOGF(info, "AC histogram registry successfully set.");
+    }
+    HistogramRegistry *GetACHistRegistry() const {return mACHistoRegistry;}
 
-  // Class-specific methods.
-  void CreateHistos();
+    void SetNcombis2h(int myCombis)
+    {
+        mNcombis2h = myCombis;
+        LOGF(info, "Number of pairs of harmos: %d.", mNcombis2h);
+    }
+    int GetNcombis2h() const {return mNcombis2h;}
 
-  /// The template functions are defined in the header to prevent compilation issues.
-  template <int cBin, typename T>
-  void FillEventQA(const T& coll, int multi, int sample)
-  {
-    if (!mHistoRegistry) {
-      LOGF(error, "No histogram manager provided. Quit.");
-      return;
+    void SetNsamples(int mySamples)
+    {
+        mNsamples = mySamples;
+        LOGF(info, "Number of samples: %d.", mNsamples);
+
+        // LOKI: Debug trick to stop the compilation to complain.
+        const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]);
+        printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
+    }
+    int GetNsamples() const {return mNsamples;}
+
+    void SetEtaGap(int myGap)
+    {
+        mEtaGap = myGap;
+        LOGF(info, "Eta gap: %.1f.", mEtaGap);
+    }
+    int GetEtaGap() const {return mEtaGap;}
+
+    /* Methods related to this class. */
+    // The template functions are defined here to prevent compilation errors.
+    void CreateQAHistos();
+    void CreateACHistos();
+
+    /// \brief Fill the event QA histograms in the centrality class 'cBin'.
+    /// \param coll Collision per defined in the JCatalyst data model.
+    /// \param multi Number of tracks in the collision.
+    /// \param sample ID of the bootstrap sample.
+    template <int cBin, typename T>
+    void FillEventQA(const T& coll, int multi, int sample)
+    {
+        if (!mQAHistoRegistry) {
+            LOGF(error, "QA histogram registry missing. Quitting...");
+            return;
+        }
+
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histCent"), coll.cent());
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histZvtx"), coll.posZ());
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histMulti"), multi);
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histSamples"), sample);
     }
 
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histCent"), coll.cent());
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histZvtx"), coll.posZ());
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histMulti"), multi);
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histSamples"), sample);
+    /// \brief Fill the track QA histograms in the centrality class 'cBin'.
+    /// \param track Track per defined in the JCatalyst data model.
+    template <int cBin, typename T>
+    void FillTrackQA(const T& track)
+    {
+        if (!mQAHistoRegistry) {
+            LOGF(error, "QA histogram registry missing. Quitting...");
+            return;
+        }
 
-    // LOKI: added just to make the compilator happy...
-    const int nCentBins = sizeof(jflucCentBins)/sizeof(jflucCentBins[0]);
-    printf("Number of centrality classes in JCatalyst: %d\n", nCentBins);
-  }
-
-  template <int cBin, typename T>
-  void FillTrackQA(const T& track)
-  {
-    if (!mHistoRegistry) {
-      LOGF(error, "No histogram manager provided. Quit.");
-      return;
+        // NOTE: Crosscheck again that the corrected histograms are filled correctly!!!
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPtUncorrected"),
+            track.pt());
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPtCorrected"),
+            track.pt(), 1./(track.weightEff()));
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histEta"),
+            track.eta());
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPhiUncorrected"),
+            track.phi());
+        mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histPhiCorrected"),
+            track.phi(), 1./(track.weightNUA()));
+        // mQAHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("histCharge"),
+        //    track.charge());
     }
 
-    // NOTE: Crosscheck again that the corrected histograms are filled correctly!!!
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histPtUncorrected"),
-                        track.pt());
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histPtCorrected"),
-                        track.pt(), 1./(track.weightEff()));
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histEta"),
-                        track.eta());
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histPhiUncorrected"),
-                        track.phi());
-    mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("QA/histPhiCorrected"),
-                        track.phi(), 1./(track.weightNUA()));
-  }
+    /// \brief Fill 2-particle profile2D for 'cBin' class.
+    /// \param
+    template <int cBin, typename T>
+    void Fill2pProf(const T& correl2p, const int sBin, const double weight2p)
+    {
+        if (!mACHistoRegistry) {
+            LOGF(error, "AC histogram registry missing. Quitting...");
+            return;
+        }
 
-  template <int cBin, int sBin, typename T>
-  void Fill2pProf(const T& correl2p, double weight2p)
-  {
-    if (!mHistoRegistry) {
-      LOGF(error, "No histogram manager provided. Quit.");
-      return;
+        /* Fill the values for the full and sample for vn no gap. */
+        // x-bin: no gap values on odd bins.
+        // y-bin for full: 0, y-bin for sample: sampleID+1.5 (eg. 0 -> bin 1.5).
+        for (int iB = 0; iB < 6; iB++) {
+            mACHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("prof2pCorrel"),
+                2.*iB+0.5, 0.5, correl2p[iB], weight2p);
+            mACHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("prof2pCorrel"),
+                2.*iB+0.5, sBin+1.5, correl2p[iB], weight2p);
+        }
     }
 
-    for (int iB = 0; iB < 6; iB++) {
-      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("Full/prof2pCorrel"),
-                          iB+0.5, correl2p[iB], weight2p);
-      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST(mSamples[sBin])+HIST("prof2pCorrel"),
-                          iB+0.5, correl2p[iB], weight2p);
-    }
-  }
+    /// \brief Fill the 2-harmonic profile2D for 'cBin' class.
+    /// \param 
+    template <int cBin, int pBin, typename T>
+    void Fill2hProf(const T& correl2h, const T& weight2h, const int sBin)
+    {
+        if (!mACHistoRegistry) {
+            LOGF(error, "AC histogram registry missing. Quitting...");
+            return;
+        }
 
-  template <int cBin, int sBin, int pBin, typename T>
-  void Fill2hProf(const T& correl2h, const T& weight2h)
-  {
-    if (!mHistoRegistry) {
-      LOGF(error, "No histogram manager provided. Quit.");
-      return;
+        /* Fill the values for the full and samples for all powers and each pair. */
+        // The number of combinations needs to be hard-coded as we need to loop over it.
+        // TODO: Try to make it compatible with the configurable...
+        for (int iB = 0; iB < 14; iB++) {
+            mACHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("prof2hCorrel")+HIST(mCombi[pBin]),
+                iB+0.5, 0.5, correl2h.at(pBin).at(iB), weight2h.at(pBin).at(iB));
+            mACHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("prof2hCorrel")+HIST(mCombi[pBin]),
+                iB+0.5, sBin+1.5, correl2h.at(pBin).at(iB), weight2h.at(pBin).at(iB));
+        }
     }
-
-    static constexpr std::string_view combis[] = {"Combi1", "Combi2", "Combi3"};
-
-    for (int iB = 0; iB < 14; iB++) {
-      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST("Full/prof2hCorrel")+HIST(combis[pBin]),
-                          iB+0.5, correl2h[iB], weight2h[iB]);
-      mHistoRegistry->fill(HIST(mCentClasses[cBin])+HIST(mSamples[sBin])+HIST("prof2hCorrel")+HIST(combis[pBin]),
-                          iB+0.5, correl2h[iB], weight2h[iB]);
-    }
-  }
 
 private:
-  HistogramRegistry *mHistoRegistry = nullptr;  ///< QA + analysis output.
-  int mNsamples = 20;   ///< Number of samples for the bootstrap.
-  float mEtaGap = 1.0;  ///< Value of the pseudorapidity gap.
-  int mNcombis2h = 3;   ///< Number of pairs of harmonics.
+    HistogramRegistry *mQAHistoRegistry = nullptr;  ///< For the QA output objects.
+    HistogramRegistry *mACHistoRegistry = nullptr;  ///< For the analysis output objects.
 
-  static constexpr std::string_view mCentClasses[] = {  // Classes from JCatalyst.
-    "Centrality_00-01/", "Centrality_01-02/", "Centrality_02-05/", "Centrality_05-10/",
-    "Centrality_10-20/", "Centrality_20-30/", "Centrality_30-40/", "Centrality_40-50/",
-    "Centrality_50-60/"
-  };
-  static constexpr std::string_view mSamples[] = {
-    "Sample00/", "Sample01/", "Sample02/", "Sample03/", "Sample04/", "Sample05/",
-    "Sample06/", "Sample07/", "Sample08/", "Sample09/", "Sample10/", "Sample11/",
-    "Sample12/", "Sample13/", "Sample14/", "Sample15/", "Sample16/", "Sample17/",
-    "Sample18/", "Sample19/"
-  };
-  static constexpr std::string_view mPowers[] = {
-    "{1,1}", "{2,2}", "{2,0}", "{2,1}", "{3,0}", "{3,1}", "{4,0}", "{4,1}",
-                      "{0,2}", "{1,2}", "{0,3}", "{1,3}", "{0,4}", "{1,4}"
-  };
+    int mNcombis2h = 3;   ///< Number of pairs of harmonics.
+    int mNsamples = 20;   ///< Number of samples for the bootstrap.
+    float mEtaGap = 1.0;  ///< Value of the pseudorapidity gap.
+
+    static constexpr std::string_view mCentClasses[] = {    ///< JCatalyst classes.
+        "Centrality_00-01/", "Centrality_01-02/", "Centrality_02-05/",
+        "Centrality_05-10/", "Centrality_10-20/", "Centrality_20-30/",
+        "Centrality_30-40/", "Centrality_40-50/", "Centrality_50-60/"
+    };
+    static constexpr std::string_view mPowers[] = {     ///< Labels for 2h profile.
+        "{1,1}", "{2,2}", "{2,0}", "{2,1}", "{3,0}", "{3,1}", "{4,0}", "{4,1}",
+                        "{0,2}", "{1,2}", "{0,3}", "{1,3}", "{0,4}", "{1,4}"
+    };
+    static constexpr std::string_view mCombi[] = {     ///< 
+        "Combi0", "Combi1", "Combi2"
+    };
 
   ClassDefNV(JAC2hHistManager, 1);  
 };
