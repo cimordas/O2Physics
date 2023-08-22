@@ -162,13 +162,15 @@ void JAC2hAnalysis::ComputeAllTerms(const int myCent, const int mySample)
     /* All 2-particle terms have been obtained, we pass to the 2-harmonic case. */
     std::vector<std::array<double, 14>> correl2h;   // Values of the correlators.
     std::vector<std::array<double, 14>> eWeight2h;  // Corresponding event weights.
+    int hIndex = 0;   // Index for the i-th harmonic pair.
     for (auto hPair : m2hPairs) {
         std::array<double, 14> thisCorrel;  // Values of the correlators.
         std::array<double, 14> thisWeight;  // Corresponding event weights.
 
         /* Decompose first the current integer into its individual harmonics. */
         std::array<int, 2> harmoPair = GetHarmoPair(hPair);
-        LOGF(info, "Current harmoPair: [%d,%d]", harmoPair.at(0), harmoPair.at(1));
+        mAC2hHistManager.FillPairProf(hIndex, harmoPair);
+        if (mDebugLevel >= 1) {printf("Current harmoPair: [%d,%d]\n", harmoPair.at(0), harmoPair.at(1));}
 
         /* Loop over each power and get the corresponding multiparticle correlator. */
         for (int iPow = 0; iPow < 14; iPow++) { // Dimension should match 'm2hPowers'.
@@ -190,7 +192,9 @@ void JAC2hAnalysis::ComputeAllTerms(const int myCent, const int mySample)
                 /* Determine the number of particles in the correlator. */
                 // 2-harmonic terms in AC have twice as many particles as their cumulant order.
                 nPartCorrel += 2*m2hPowers.at(iPow).at(iHarmo);
-                printf("m2hPowers.at(iPow).at(iHarmo): %d\n", m2hPowers.at(iPow).at(iHarmo));
+                if (mDebugLevel >= 2) {
+                    printf("m2hPowers.at(iPow).at(iHarmo): %d\n", m2hPowers.at(iPow).at(iHarmo));
+                }
             } // Go to the second harmonic of the pair.
             
             /* Get the right event weight using 'iEW'. */
@@ -206,9 +210,11 @@ void JAC2hAnalysis::ComputeAllTerms(const int myCent, const int mySample)
         /* Save the correlators and weights obtained for this pair of harmonics. */
         correl2h.push_back(thisCorrel);
         eWeight2h.push_back(thisWeight);
+        hIndex++;   // Raise the index for the next harmonic pair.
     }   // Go to the next harmonic pair in the list.
 
     /* Fill the profile2D with the correlators. */
+    // TODO: Find a less ugly way to implement the filling of the 2hProf.
     switch (myCent) {
     case 0:
         mAC2hHistManager.Fill2pProf<0>(correl2p, mySample, eventWeights.at(0));

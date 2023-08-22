@@ -21,11 +21,13 @@
 #include <string>
 #include <vector>
 #include <TH1.h>
+#include <TProfile.h>
 #include <TProfile2D.h>
 
 // O2 headers.
 #include "Framework/AnalysisDataModel.h"
 #include "Framework/HistogramRegistry.h"
+#include "Framework/StaticFor.h"
 
 // O2Physics headers.
 
@@ -97,6 +99,7 @@ public:
     // The template functions are defined here to prevent compilation errors.
     void CreateQAHistos();
     void CreateACHistos();
+    void FillPairProf(const int hBin, const std::array<int, 2>& pairHarmo);
 
     /// \brief Fill the event QA histograms in the centrality class 'cBin'.
     /// \param coll Collision per defined in the JCatalyst data model.

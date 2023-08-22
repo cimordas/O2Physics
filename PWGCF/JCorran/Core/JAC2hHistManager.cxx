@@ -111,12 +111,14 @@ void JAC2hHistManager::CreateACHistos()
     }
 
     /* Define the histogram bookkeeping the pairs of harmonics as integers. */
-    const AxisSpec axisCombis{mNcombis2h, 0., (double)mNcombis2h, "Pairs"};
-    mACHistoRegistry->add("Centrality_00-01/histCombis", "Configured pairs of harmonics",
-        HistType::kTH1I, {axisCombis}, true);
-    for (int i = 1; i <= mNcombis2h; i++) {
-        mACHistoRegistry->get<TH1>(HIST("Centrality_00-01/histCombis"))
-            ->GetXaxis()->SetBinLabel(i, Form("Combi%d", i-1));
+    const AxisSpec axisCombis{2*mNcombis2h, 0., 2.*(double)mNcombis2h, "Pairs (m,n)"};
+    mACHistoRegistry->add("histCombis", "Configured pairs of harmonics",
+        HistType::kTProfile, {axisCombis}, true);
+    for (int i = 0; i < mNcombis2h; i++) {
+        mACHistoRegistry->get<TProfile>(HIST("histCombis"))
+            ->GetXaxis()->SetBinLabel(2*i+1, Form("Combi%d-m", i));
+        mACHistoRegistry->get<TProfile>(HIST("histCombis"))
+            ->GetXaxis()->SetBinLabel(2*(i+1), Form("Combi%d-n", i));
     }
 
     /* Define the TProfile2D used to save the multiparticle correlators. */
@@ -165,6 +167,22 @@ void JAC2hHistManager::CreateACHistos()
     for (int iBin = 1; iBin < 9; iBin++) {
         mACHistoRegistry->addClone("Centrality_00-01/", mCentClasses[iBin].data());
     }
+}
+
+/// \brief Fill the profile with the pairs of harmonics for the provided array.
+/// \param .
+/// \param .
+void JAC2hHistManager::FillPairProf(const int hBin, const std::array<int, 2>& pairHarmo)
+{
+    /* Security checks. */
+    if (!mACHistoRegistry) {
+        LOGF(error, "AC histogram registry missing. Quitting...");
+        return;
+    }
+
+    // Fill the profile itself.
+    mACHistoRegistry->fill(HIST("histCombis"), 2.*(double)hBin+0.5, pairHarmo[0]);
+    mACHistoRegistry->fill(HIST("histCombis"), 2.*(double)hBin+1.5, pairHarmo[1]);
 }
 
 } // namespace o2::analysis::PWGCF
