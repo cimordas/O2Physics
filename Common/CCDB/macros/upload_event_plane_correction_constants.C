@@ -18,8 +18,6 @@
 #include "TFile.h"
 #include "TH2D.h"
 
-//#include "Common/Core/EventPlaneHelper.h"
-
 using std::map;
 using std::string;
 
@@ -55,12 +53,14 @@ void GetRescale(TH2* h, std::vector<float>& corr)
     corr.push_back(aMinus);
 }
 
+// NOTE: run and harmonic disabled for now. They will be renabled if a run/harmonic dependence is seen.
 void upload_event_plane_correction_constants(const string ccdbPath = "http://ccdb-test.cern.ch:8080",
-                                            const string fInput = "",
-                                            const string period = "",
-                                            const string run = "",
-                                            const string detector = "",
-                                            const string harmonic = "2")
+                                            const string fInput = "/home/cindy/cernbox/MyProjects/EP_O2-Tests/AnalysisResults.root",
+                                            const string period = "LHC22s",
+                                            const string pass = "pass5")//,
+                                            //const string run = "",
+                                            //const string detector = "",
+                                            //const string harmonic = "2")
 {
     // Open the connexion to the CCDB.
     o2::ccdb::CcdbApi ccdb;
@@ -85,7 +85,7 @@ void upload_event_plane_correction_constants(const string ccdbPath = "http://ccd
     std::vector<float> corrConst;
 
     for (int i = 0; i < nbins; i++) {
-        dirInput = (TDirectoryFile*)fileInput->GetDirectory(Form("q-vectors-corrections/%s", dirNames[i]));
+        dirInput = (TDirectoryFile*)fileInput->GetDirectory(Form("q-vectors-correction/%s", dirNames[i]));
         hQv = (TH2D*)dirInput->Get("histQvecUncor");
 
         // Get all the constants for this centrality class, in the order required by 'qVectorTable.cxx'.
@@ -93,19 +93,27 @@ void upload_event_plane_correction_constants(const string ccdbPath = "http://ccd
         GetTwist(hQv, corrConst);
         GetRescale(hQv, corrConst);
     }
+    printf("Vector: ");
+    for (int i = 0; i < nbins*6; i++) {
+        printf("%e ,", corrConst[i]);
+    }
+    printf("\n");
 
     // Prepare the metadata information for this set of correction constants.
     map<string, string> metadata, metadataRCT, header;
     metadata["period"] = period;
-    metadata["runNumber"] = run;
-    metadata["detector"] = detector;
-    metadata["harmonics"] = harmonic;
+    metadata["pass"] = pass;
+    //metadata["runNumber"] = run;
+    //metadata["detector"] = detector;
+    //metadata["harmonics"] = harmonic;
 
-    header = ccdb.retrieveHeaders(Form("RCT/Info/RunInformation/%i", run), metadataRCT, -1);
-    ULong64_t sor = atol(header["SOR"].c_str());
-    ULong64_t eor = atol(header["EOR"].c_str());
+    //header = ccdb.retrieveHeaders(Form("RCT/Info/RunInformation/%i", run), metadataRCT, -1);
+    //ULong64_t sor = atol(header["SOR"].c_str());
+    //ULong64_t eor = atol(header["EOR"].c_str());
+    ULong64_t sor = 1672531200000;
+    ULong64_t eor = 1893456000000;
 
-    ccdb.storeAsTFileAny(corrConst, "EventPlaneCalib", metadata, sor, eor);
+    ccdb.storeAsTFileAny(&corrConst, "EventPlaneCalib", metadata, sor, eor);
 
     return;
 }
