@@ -67,11 +67,11 @@ struct qVectorsTable {
 
   Configurable<std::string> cfgMultName{"cfgDetName", "FT0C", "The name of detector to be analyzed, available systems: FT0A, FT0C, FV0A, TPCF, TPCB"};
 
-  // LOKI: We have here all centrality estimators for Run 3 (except FDDM and NTPV),
+  // NOTE: We have here all centrality estimators for Run 3 (except FDDM and NTPV),
   // but the Q-vectors are calculated only for some of them.
   // FIXME: 6 correction factors for each centrality and 8 centrality intervals are hard-coded.
 
-  Configurable<std::vector<float>> cfgCorr{"cfgCorr", std::vector<float>{0.0}, "Correction constants for detector"};
+  ///Configurable<std::vector<float>> cfgCorr{"cfgCorr", std::vector<float>{0.0}, "Correction constants for detector"};
   Configurable<std::vector<float>> cfgBPosCorr{"cfgBPosCorr", std::vector<float>{0.0}, "Correction constants for positive TPC tracks"};
   Configurable<std::vector<float>> cfgBNegCorr{"cfgBNegCorr", std::vector<float>{0.0}, "Correction constants for negative TPC tracks"};
 
@@ -93,6 +93,7 @@ struct qVectorsTable {
   Service<o2::ccdb::BasicCCDBManager> ccdb;
   std::vector<o2::detectors::AlignParam>* offsetFT0;
   std::vector<o2::detectors::AlignParam>* offsetFV0;
+  std::vector<float>* cfgCorr;  //FIXME: Change name to a non-config one.
 
   std::vector<int> TrkBPosLabel;
   std::vector<int> TrkBNegLabel;
@@ -131,6 +132,16 @@ struct qVectorsTable {
       helperEP.SetOffsetFV0right((*offsetFV0)[1].getX(), (*offsetFV0)[1].getY());
     } else {
       LOGF(fatal, "Could not get the alignment parameters for FV0.");
+    }
+
+    // Get the correction constant from the CCDB.
+    cfgCorr = ccdb->getForTimeStamp<std::vector<float>>("EventPlaneCalib",
+                                                        cfgCcdbParam.nolaterthan.value);
+    if (cfgCorr != nullptr) {
+      LOGF(info, "Found the correction constants for the det.");
+      printf("cfgCorr: %.2f\n", (*cfgCorr)[0]);
+    } else {
+      LOGF(fatal, "Could not get the correction constants for the det.");
     }
 
     if (cfgCorr->size() < 48) {
