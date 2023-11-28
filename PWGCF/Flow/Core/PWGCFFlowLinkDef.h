@@ -17,5 +17,6 @@
 #pragma link off all functions;
 
 #pragma link C++ class o2::analysis::PWGCF::FlowAC2hHistManager + ;
+#pragma link C++ class o2::analysis::PWGCF::FlowAC2hAnalysis + ;
 
 #endif  // PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H
