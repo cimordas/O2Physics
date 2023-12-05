@@ -64,6 +64,15 @@ public:
   int GetHarmos() const {return mNqHarmos;}
   int GetPowers() const {return mNqPowers;}
 
+  void SetEtaGap(bool useGap, float myGap)
+  {
+    mUseEtaGap = useGap;
+    mEtaGap = myGap;
+    LOGF(info, "Use eta gap: %d.\nEta gap value: %.2f.", mUseEtaGap, mEtaGap);
+  }
+  bool GetUseEtaGap() const {return mUseEtaGap;}
+  int GetEtaGap() const {return mEtaGap;}
+
   /* Methods specific to this class. */
   std::array<int, 2> GetHarmoPair(int inPair);
 
@@ -74,13 +83,19 @@ public:
   void ComputeAllCorrel(const int myCentBin, const int mySample);
   double ComputeThisCorrel(const int nPC, const double myEventWeight,
                            const int (&myHarmos)[7]);
+  void ComputeCorrelEtaGap(const std::vector<float>& myAngles,
+                             const std::vector<float>& myWeights,
+                             const std::vector<float>& myEtas);
 
 private:
   FlowAC2hHistManager mAC2hHistManager;  ///< Link to the histogram manager.
 
   bool mDebugPrint = true;    ///< Class verbosity. 0: none, 1: debug.
+  bool mUseEtaGap = true;     ///< Enable the eta gap calculations of the 2-particle correlators.
   const int mNqHarmos = 61;   ///< Highest harmo for Q(n,p): (v6*10part)+1.
   const int mNqPowers = 11;   ///< Max power for Q(n,p): 10part+1.
+  float mEtaGap = 1.0;  ///< Value of the pseudorapidity gap.
+  
   std::vector<int> m2hPairs;  ///< All pairs of harmonics of interest.
                                 // Dimensions must be at least 'cfgNcombis2h'.
 
@@ -90,10 +105,12 @@ private:
   }};   ///< All combinations of powers for the 2h AC.
           // Must correspond to the one in FlowAC2hHistManager.h.
 
+  std::array<std::array<double, 2>, 6> m2pCorrelEtaGap; ///< 2-particle correlator and weights with eta gap.
+
   std::array<std::array<TComplex, 11>, 61> mQvectors;   ///< Q(n,p) for all (n,p).
                                 // Dimensions must match [mNqHarmos][mNqPowers].
 
-  ClassDefNV(FlowAC2hAnalysis, 1);  
+  ClassDefNV(FlowAC2hAnalysis, 1);
 };
 } // namespace o2::analysis::PWGCF
 

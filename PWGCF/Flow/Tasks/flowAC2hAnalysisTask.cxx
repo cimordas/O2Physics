@@ -77,11 +77,15 @@ struct flowAC2hAnalysisTask
   Configurable<float> cfgZvtxMax{"cfgCutZvtx", 10.0f, "Maximum value for Z-vtx."};
 
   /* Set the track quality cuts. */
+  Configurable<bool> cfgUseNUA{"cfgUseNUA", true, "Enable the use of NUA weights."};
+  Configurable<bool> cfgUseNUE{"cfgUseNUE", true, "Enable the use of NUE weights."};
   Configurable<float> cfgPtMin{"cfgPtMin", 0.2f, "Minimum pT for tracks"};
   Configurable<float> cfgPtMax{"cfgPtMax", 5.0f, "Maximum pT for tracks"};
   Configurable<float> cfgEtaMax{"cfgEtaMax", 0.8f, "Maximum eta range for tracks"};
 
   /* Set the analysis details. */
+  Configurable<bool> cfgUseEtaGap{"cfgUseEtaGap", true,
+                                  "Calculate the 2-particle terms with eta gap."};
   Configurable<int> cfgNcombis2h{"cfgNcombis2h", 3, "Number of harmonics pairs."};
   Configurable<int> cfgNsamples{"cfgNsamples", 20, "Number of bootstrap samples."};
   Configurable<float> cfgEtaGap{"cfgEtaGap", 1.0, "Minimum eta gap value."};
@@ -105,9 +109,9 @@ struct flowAC2hAnalysisTask
     /* Initialize the histogram manager with the values it requires to work. */
     histManager.SetHistRegistryQA(&qaHistRegistry);
     histManager.SetHistRegistryAN(&anHistRegistry);
+    histManager.SetEtaGap(cfgUseEtaGap);
     histManager.SetNcombis2h(cfgNcombis2h);
     histManager.SetNsamples(cfgNsamples);
-    histManager.SetEtaGap(cfgEtaGap);
     if (cfgSaveQA) {histManager.CreateHistQA();}
     histManager.CreateHistAN();
 
@@ -115,6 +119,7 @@ struct flowAC2hAnalysisTask
     acAnalysis.SetAC2hHistManager(histManager);
     acAnalysis.SetDebugPrint(cfgPrintDebug);
     acAnalysis.Set2hPairs(cfg2hHarmos);
+    acAnalysis.SetEtaGap(cfgUseEtaGap, cfgEtaGap);
   }
 
   /// \brief O2 function executed for each collision.
@@ -143,7 +148,7 @@ struct flowAC2hAnalysisTask
     // The minimum cut on the multiplicity ensures that the correlators are
     // properly defined (must be the last cut applied).
     if (!coll.sel8()) {return;}
-    if (nTracks < cfgMultMin) {return;}
+    if (nTracks <= cfgMultMin) {return;}
 
     /* Give a sample ID to this collision based on a uniform distribution. */
     int sampleID = int(gRandom->Uniform(0, cfgNsamples));
@@ -157,10 +162,13 @@ struct flowAC2hAnalysisTask
     bool isFirstTrack = true;
     std::vector<float> trackPhi;
     std::vector<float> trackWeight;
+    std::vector<float> trackEta;
 
     for (auto& track : tracks) {
       trackPhi.push_back(track.phi());
-      trackWeight.push_back(1.);  // TODO: Add gestions of non-unit NUE and NUA weights.
+      trackWeight.push_back(1.);  // TODO: Add non-unit NUE and NUA weights.
+      // Make it so that the vector of weights contain NUE*NUA to avoid having two vectors.
+      if (cfgUseEtaGap) {trackEta.push_back(track.eta());}
 
       if (cfgSaveQA) {
         switch (cBin) {
@@ -218,6 +226,7 @@ struct flowAC2hAnalysisTask
 
     /* Compute the Q-vectors, then the multiparticle correlators. */
     acAnalysis.CalculateQvectors(trackPhi, trackWeight);
+    if (cfgUseEtaGap) {acAnalysis.ComputeCorrelEtaGap(trackPhi, trackWeight, trackEta);}    
     acAnalysis.ComputeAllCorrel(cBin, sampleID);
 
     /* Reset the variables for the next collision. */
