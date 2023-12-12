@@ -9,14 +9,14 @@
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
 
-/* Header files. */
+// Header files.
 
 // O2 headers.
 
 // O2 Physics headers.
 #include "PWGCF/Flow/Core/FlowAC2hHistManager.h"
 
-/* Namespaces. */
+// Namespaces.
 using namespace o2;
 using namespace o2::framework;
 
@@ -26,27 +26,27 @@ namespace o2::analysis::PWGCF
 /// \note QA and AN are created separately to allow getting the QA only.
 void FlowAC2hHistManager::CreateHistQA()
 {
-  /* Security checks. */
+  // Security checks for proper use of the method.
   if (!mHistRegistryQA) {
     LOGF(error, "QA histogram registry missing. Quitting...");
     return;
   }
 
-  /* Definition of the QA histograms. */
+  // Definition of the QA histograms.
   // All the histograms are defined in details for the first centrality
-  // class before additional cuts, then cloned for the other classes.
+  // class after additional cuts, then cloned for the other classes.
 
-  const AxisSpec axisCent{100, 0., 100., "Centrality percentile"};
-  mHistRegistryQA->add("Centrality_00-01/histCent", "Centrality",
-                        HistType::kTH1F, {axisCent}, true);
+  const AxisSpec axisCent{110, 0., 110., "Centrality percentile"};
+  mHistRegistryQA->add("Centrality_00-01/After/histCent", "Centrality",
+                       HistType::kTH1F, {axisCent}, true);
 
   const AxisSpec axisMulti{1000, 0., 25000., "N_{tracks}"};
-  mHistRegistryQA->add("Centrality_00-01/histMulti", "Multiplicity",
-                        HistType::kTH1I, {axisMulti}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histMulti", "Multiplicity",
+                       HistType::kTH1I, {axisMulti}, true);
 
-  const AxisSpec axisZvtx{24, -12., 12., "Z_{vtx} [cm]"};
-  mHistRegistryQA->add("Centrality_00-01/histZvtx", "Z_{vtx}",
-                        HistType::kTH1F, {axisZvtx}, true);
+  const AxisSpec axisZvtx{22, -11., 11., "Z_{vtx} [cm]"};
+  mHistRegistryQA->add("Centrality_00-01/After/histZvtx", "Z_{vtx}",
+                       HistType::kTH1F, {axisZvtx}, true);
 
 /*If a variable binning is needed.
   std::vector<double> ptBinning = {0., 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
@@ -57,24 +57,86 @@ void FlowAC2hHistManager::CreateHistQA()
   const AxisSpec axisPt = {ptBinning, "#it{p}_{T} [GeV/#it{c}]"};
 */
   const AxisSpec axisPt = {60, 0., 6., "#it{p}_{T} [GeV/#it{c}]"};
-  mHistRegistryQA->add("Centrality_00-01/histPt", "#it{p}_{T} (not NUE corrected)",
-                        HistType::kTH1F, {axisPt}, true);
-  mHistRegistryQA->add("Centrality_00-01/histPtCorrected", "#it{p}_{T} (NUE corrected)",
-                        HistType::kTH1F, {axisPt}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histPt", "#it{p}_{T} (no NUE)",
+                       HistType::kTH1F, {axisPt}, true);
 
   const AxisSpec axisEta = {20, -1., 1., "#eta"};
-  mHistRegistryQA->add("Centrality_00-01/histEta", "Pseudorapidity",
-                        HistType::kTH1F, {axisEta}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histEta", "Pseudorapidity",
+                       HistType::kTH1F, {axisEta}, true);
 
   const AxisSpec axisPhi = {100, 0., 2.*M_PI, "#varphi"};
-  mHistRegistryQA->add("Centrality_00-01/histPhi", "Azimuthal angles (not NUA corrected)",
-                        HistType::kTH1F, {axisPhi}, true);
-  mHistRegistryQA->add("Centrality_00-01/histPhiCorrected", "Azimuthal angles (NUA corrected)",
-                        HistType::kTH1F, {axisPhi}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histPhi", "Azimuthal angles (no NUA)",
+                       HistType::kTH1F, {axisPhi}, true);
 
   const AxisSpec axisCharge = {2, -2., 2., "Charge"};
-  mHistRegistryQA->add("Centrality_00-01/histCharge", "Electric charge",
-                        HistType::kTH1I, {axisCharge}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histCharge", "Electric charge",
+                       HistType::kTH1I, {axisCharge}, true);
+
+  // Additional QA for the full QA task.
+  if (mSaveAllQA) {
+    // TPC information.
+    const AxisSpec axisTPCNcls = {163, -0.5, 162.5, "N_{cls}"};
+    mHistRegistryQA->add("Centrality_00-01/After/histTPCNClsFound",
+                         "Number of found TPC clusters",
+                         HistType::kTH1I, {axisTPCNcls}, true);
+
+    mHistRegistryQA->add("Centrality_00-01/After/histTPCNClsCrossedRows",
+                         "Number of crossed TPC rows",
+                         HistType::kTH1I, {axisTPCNcls}, true);
+
+    const AxisSpec axisTPCRatio = {20, -0.5, 19.5, "Ratio"};
+    mHistRegistryQA->add("Centrality_00-01/After/histTPCCrossedRowsOverFindableCls",
+                         "Ratio crossed rows over findable clusters in TPC",
+                         HistType::kTH1F, {axisTPCRatio}, true);
+
+    mHistRegistryQA->add("Centrality_00-01/After/histTPCFoundOverFindableCls",
+                         "Ratio of found over findable clusters in TPC",
+                         HistType::kTH1F, {axisTPCRatio}, true);
+
+    const AxisSpec axisTPCFraction = {30, -0.5, 2.5, "Fraction"};
+    mHistRegistryQA->add("Centrality_00-01/After/histTPCFractionSharedCls",
+                         "Fraction of shared TPC clusters",
+                         HistType::kTH1F, {axisTPCFraction}, true);
+
+    const AxisSpec axisTPCChi = {200, -0.5, 19.5, "#chi^{2} per cl"};
+    mHistRegistryQA->add("Centrality_00-01/After/histTPCChi2NCl",
+                         "Chi2 per cluster for the TPC track segment",
+                         HistType::kTH1F, {axisTPCChi}, true);
+
+    // ITS information.
+    const AxisSpec axisITSNcls = {10, -0.5, 9.5, "N_{cls}"};
+    mHistRegistryQA->add("Centrality_00-01/After/histITSNCls", "Number of ITS clusters",
+                         HistType::kTH1I, {axisITSNcls}, true);
+
+    mHistRegistryQA->add("Centrality_00-01/After/histITSNClsInnerBarrel",
+                         "Number of ITS clusters in the Inner Barrel",
+                         HistType::kTH1I, {axisITSNcls}, true);
+    
+    const AxisSpec axisITSChi = {500, -0.5, 50.5, "#chi^{2} per cl"};
+    mHistRegistryQA->add("Centrality_00-01/After/histITSChi2NCl",
+                         "Chi2 per cluster for the ITS track segment",
+                         HistType::kTH1F, {axisITSChi}, true);
+
+    // DCA information.
+    const AxisSpec axisDCAxy = {100, -2.5, 2.5, "DCA_{xy} (cm)"};
+    mHistRegistryQA->add("Centrality_00-01/After/histDCAxy", "DCA_{xy} vs #it{p}_{T}",
+                         HistType::kTH2F, {axisPt, axisDCAxy}, true);
+
+    const AxisSpec axisDCAz = {110, -5.5, 5.5, "DCA_{z} (cm)"};
+    mHistRegistryQA->add("Centrality_00-01/After/histDCAz", "DCA_{z}",
+                         HistType::kTH1F, {axisDCAz}, true);
+
+    if (mSaveQABefore) {
+      // Clone all the QA for the Before/ distributions.
+      mHistRegistryQA->addClone("Centrality_00-01/After/", "Centrality_00-01/Before/");
+    }
+  }
+
+  // Add corrected NUE/NUA histograms for pT and phi only in After/.
+  mHistRegistryQA->add("Centrality_00-01/After/histPtCorrected", "#it{p}_{T} (with NUE)",
+                       HistType::kTH1F, {axisPt}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histPhiCorrected", "Azimuthal angles (with NUA)",
+                       HistType::kTH1F, {axisPhi}, true);
 
   // Clone the first centrality class.
   for (int iBin = 1; iBin < mNcentBins; iBin++) {

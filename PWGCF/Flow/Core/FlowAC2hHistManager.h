@@ -45,7 +45,7 @@ class FlowAC2hHistManager
 public:
   FlowAC2hHistManager() = default;
 
-  /* Setters and getters. */
+  // Setters and getters, in the same order as the data members.
   void SetHistRegistryQA(HistogramRegistry *myRegistry)
   {
     mHistRegistryQA = myRegistry;
@@ -59,6 +59,27 @@ public:
     LOGF(info, "AN histogram registry successfully set.");
   }
   HistogramRegistry *GetHistRegistryAN() const {return mHistRegistryAN;}
+
+  void SetDebugLog(bool debug)
+  {
+    mDebugLog = debug;
+    LOGF(info, "Debug level: %d", mDebugLog);
+  }
+  bool GetDebugLog() const {return mDebugLog;}
+
+  void SetSaveAllQA(bool saveQA)
+  {
+    mSaveAllQA = saveQA;
+    LOGF(info, "Save the additional QA : %d.", mSaveAllQA);
+  }
+  bool GetSaveAllQA() const {return mSaveAllQA;}
+
+  void SetSaveQABefore(bool saveQA)
+  {
+    mSaveQABefore = saveQA;
+    LOGF(info, "Save the QA before the selection : %d.", mSaveQABefore);
+  }
+  bool GetSaveQABefore() const {return mSaveQABefore;}
 
   void SetEtaGap(bool useGap)
   {
@@ -105,10 +126,11 @@ public:
   }
 
   /// \brief Fill the track QA histograms in the centrality class.
-  /// \param cBin Centrality bin of the collision.
+  /// \tparam cBin Centrality bin of the collision.
+  /// \tparam mode Fill the QA before/after the full selection.
   /// \param track Track entry of the table.
   // TODO: Add filling of the weight histograms.
-  template <int cBin, typename T>
+  template <int cBin, int mode, typename T>
   void FillTrackQA(const T& track)
   {
     if (!mHistRegistryQA) {
@@ -116,10 +138,43 @@ public:
       return;
     }
 
-    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("histPt"), track.pt());
-    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("histEta"), track.eta());
-    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("histPhi"), track.phi());
-    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("histCharge"), track.sign());
+    static constexpr std::string_view subDir[] = {"Before/", "After/"};
+
+    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histPt"), track.pt());
+    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histEta"), track.eta());
+    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histPhi"), track.phi());
+    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histCharge"), track.sign());
+
+    if (mSaveAllQA) {
+      // TPC information.
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histTPCNClsFound"),
+                            track.tpcNClsFound());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histTPCNClsCrossedRows"),
+                            track.tpcNClsCrossedRows());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histTPCCrossedRowsOverFindableCls"),
+                            track.tpcCrossedRowsOverFindableCls());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histTPCFoundOverFindableCls"),
+                            track.tpcFoundOverFindableCls());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histTPCFractionSharedCls"),
+                            track.tpcFractionSharedCls());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histTPCChi2NCl"),
+                            track.tpcChi2NCl());
+
+      // ITS information.
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histITSNCls"),
+                            track.itsNCls());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histITSNClsInnerBarrel"),
+                            track.itsNClsInnerBarrel());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histITSChi2NCl"),
+                            track.itsChi2NCl());
+
+      // DCA information.
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histDCAxy"),
+                            track.pt(), track.dcaXY());
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histDCAz"),
+                            track.dcaZ());
+    }
+
   }
 
   /// \brief Fill the number of events per bootstrap sample and the full dataset.
@@ -208,8 +263,10 @@ private:
   HistogramRegistry *mHistRegistryQA = nullptr;   ///< For the QA output.
   HistogramRegistry *mHistRegistryAN = nullptr;   ///< For the analysis output.
 
-  bool mSaveQABefore = true;  ///< Save the QA output before the selection cuts?
-  bool mUseEtaGap = true;     ///< Enable the eta gap calculations of the 2-particle correlators.
+  bool mDebugLog = true;        ///< Enable to print additional log for debug.
+  bool mSaveAllQA = false;      ///< Save the additional QA (true for QA task).
+  bool mSaveQABefore = false;   ///< Save the QA output before any selection.
+  bool mUseEtaGap = true;   ///< Enable the eta gap of the 2-particle correlators.
   int mNcombis2h = 3;   ///< Number of pairs of harmonics.
   int mNsamples = 20;   ///< Number of samples for the bootstrap.
 
