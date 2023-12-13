@@ -88,8 +88,8 @@ struct flowAC2hAnalysisTask
   Configurable<float> cfgZvtxMax{"cfgCutZvtx", 10.0f, "Maximum range for Zvtx."};
 
   // Set the track quality cuts. 
-  //Configurable<bool> cfgUseNUA{"cfgUseNUA", true, "Enable the use of NUA weights."};
-  //Configurable<bool> cfgUseNUE{"cfgUseNUE", true, "Enable the use of NUE weights."};
+  Configurable<bool> cfgUseNUA{"cfgUseNUA", true, "Enable the use of NUA weights."};
+  Configurable<bool> cfgUseNUE{"cfgUseNUE", true, "Enable the use of NUE weights."};
   Configurable<float> cfgPtMin{"cfgPtMin", 0.2f, "Minimum pT for tracks"};
   Configurable<float> cfgPtMax{"cfgPtMax", 5.0f, "Maximum pT for tracks"};
   Configurable<float> cfgEtaMax{"cfgEtaMax", 0.8f, "Maximum eta range."};
@@ -104,11 +104,6 @@ struct flowAC2hAnalysisTask
   } cfgCCDB;
   Service<o2::ccdb::BasicCCDBManager> ccdb;
   // NOTE: Add here variables related to the ccdb.
-
-  /* Set the analysis details. */
-
-  //Configurable<float> cfgEtaGap{"cfgEtaGap", 1.0, "Minimum eta gap value."};
-  //Configurable<std::vector<int>> cfg2hHarmos{"cfg2hHarmos", {23, 24, 34}, "List of 2h pairs"};
 
   // Define here the filters to apply to the received data.
   // The analysis assumes the data has been subjected to a QA of its selection,
@@ -182,75 +177,39 @@ struct flowAC2hAnalysisTask
       LOGF(info, "Centrality value: %.2f Centrality bin: %d", cent, cBin);
     }
 
-    // Give a sample ID to this collision based on a uniform distribution.
+    // We give a sample ID to this collision based on a uniform distribution.
     int sampleID = int(gRandom->Uniform(0, cfgNsamples));
     if (cfgDebugLog) {
       LOGF(info, "Sample ID of this collision: %d", sampleID);
     }
 
-    // Save the azimuthal angles and weights for all correlators, and the
-    // pseudorapidities for the 2-particle terms with eta gap. The QA histograms
-    // are filled if enabled, the EventQA is filled only for the first track
-    // of the collision.
+    // For each track, we save the azimuthal angles and weights for all
+    // correlators, and the pseudorapidities for the 2-particle terms with
+    // eta gap. The QA histograms are filled if enabled, the EventQA is filled
+    // only for the first track of the collision.
     bool isFirstTrack = true;
+    std::vector<float> trackEta;
     std::vector<float> trackPhi;
     std::vector<float> trackWeight;
-    std::vector<float> trackEta;
 
     for (auto& track : tracks) {
-      trackPhi.push_back(track.phi());
-      trackWeight.push_back(1.);  // TODO: Add non-unit NUE and NUA weights.
-      // Make it so that the vector of weights contain NUE*NUA to avoid having two vectors.
       if (cfgUseEtaGap) {trackEta.push_back(track.eta());}
+      trackPhi.push_back(track.phi());
+
+      // We get the NUE and NUA weight values from the objects fetched earlier
+      // in the CCDB. These weights still need to be inverted to be used in
+      // the computations of the Q-vectors.
+      float wNUE = 1.;  // Unit NUE weight for pT.
+      float wNUA = 1.;  // Unit NUA weight for phi.
+
+      if (cfgUseNUE) {;}
+      if (cfgUseNUA) {;}
+
+      trackWeight.push_back(1./(wNUE*wNUA));
 
       if (cfgSaveQA) {
-        switch (cBin) {
-        case 0:
-          if (isFirstTrack) {histManager.FillEventQA<0>(coll, cent, nTracks);}
-          histManager.FillTrackQA<0,1>(track);
-          break;
-        case 1:
-          if (isFirstTrack) {histManager.FillEventQA<1>(coll, cent, nTracks);}
-          histManager.FillTrackQA<1,1>(track);
-          break;
-        case 2:
-          if (isFirstTrack) {histManager.FillEventQA<2>(coll, cent, nTracks);}
-          histManager.FillTrackQA<2,1>(track);
-          break;
-        case 3:
-          if (isFirstTrack) {histManager.FillEventQA<3>(coll, cent, nTracks);}
-          histManager.FillTrackQA<3,1>(track);
-          break;
-        case 4:
-          if (isFirstTrack) {histManager.FillEventQA<4>(coll, cent, nTracks);}
-          histManager.FillTrackQA<4,1>(track);
-          break;
-        case 5:
-          if (isFirstTrack) {histManager.FillEventQA<5>(coll, cent, nTracks);}
-          histManager.FillTrackQA<5,1>(track);
-          break;
-        case 6:
-          if (isFirstTrack) {histManager.FillEventQA<6>(coll, cent, nTracks);}
-          histManager.FillTrackQA<6,1>(track);
-          break;
-        case 7:
-          if (isFirstTrack) {histManager.FillEventQA<7>(coll, cent, nTracks);}
-          histManager.FillTrackQA<7,1>(track);
-          break;
-        case 8:
-          if (isFirstTrack) {histManager.FillEventQA<8>(coll, cent, nTracks);}
-          histManager.FillTrackQA<8,1>(track);
-          break;
-        case 9:
-          if (isFirstTrack) {histManager.FillEventQA<9>(coll, cent, nTracks);}
-          histManager.FillTrackQA<9,1>(track);
-          break;
-        default:
-          if (cfgDebugLog) {
-            LOGF(info, "Centrality percentile not included in analysis. Next...");
-          }
-          break;
-        }
+        if (isFirstTrack) {histManager.FillEventQA<1>(coll, cBin, cent, nTracks);}
+        histManager.FillTrackQA<1>(track, cBin,  wNUE, wNUA);
       }
 
       // Indicate when the first track of the collision has been analysed.

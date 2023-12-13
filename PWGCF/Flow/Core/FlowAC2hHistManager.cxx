@@ -44,7 +44,7 @@ void FlowAC2hHistManager::CreateHistQA()
   mHistRegistryQA->add("Centrality_00-01/After/histMulti", "Multiplicity",
                        HistType::kTH1I, {axisMulti}, true);
 
-  const AxisSpec axisZvtx{22, -11., 11., "Z_{vtx} [cm]"};
+  const AxisSpec axisZvtx{30, -15., 15., "Z_{vtx} [cm]"};
   mHistRegistryQA->add("Centrality_00-01/After/histZvtx", "Z_{vtx}",
                        HistType::kTH1F, {axisZvtx}, true);
 
@@ -132,10 +132,14 @@ void FlowAC2hHistManager::CreateHistQA()
     }
   }
 
-  // Add corrected NUE/NUA histograms for pT and phi only in After/.
+  // Add NUE/NUA related histograms for pT and phi only in After/.
   mHistRegistryQA->add("Centrality_00-01/After/histPtCorrected", "#it{p}_{T} (with NUE)",
                        HistType::kTH1F, {axisPt}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histNUEWeights", "NUE weights",
+                       HistType::kTH1F, {axisPt}, true);
   mHistRegistryQA->add("Centrality_00-01/After/histPhiCorrected", "Azimuthal angles (with NUA)",
+                       HistType::kTH1F, {axisPhi}, true);
+  mHistRegistryQA->add("Centrality_00-01/After/histNUAWeights", "NUA weights (projection)",
                        HistType::kTH1F, {axisPhi}, true);
 
   // Clone the first centrality class.

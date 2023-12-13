@@ -103,35 +103,20 @@ public:
   int GetNsamples() const {return mNsamples;}
 
   /* Methods specific to this class. */
-  // The template functions are defined here to prevent compilation errors.
+  // The template functions are defined down here to prevent compilation errors.
   void CreateHistQA();
   void CreateHistAN();
   int GetCentBin(float cValue);
   void FillPairProf(const int hBin, const std::array<int, 2>& pairHarmo);
 
-  /// \brief Fill the event QA histograms in the centrality class.
-  /// \param cBin Centrality bin of the collision.
+  /// \brief Fill the event QA histograms.
+  /// \tparam mode Indicate if Before/ or After/ selection.
   /// \param coll Collision entry of the table.
+  /// \param cBin Centrality bin of the collision.
+  /// \param cent Centrality percentile of the collision.
   /// \param multi Collision multiplicity at this step.
-  template <int cBin, typename T>
-  void FillEventQA(const T& coll, float cent, int multi)
-  {
-    if (!mHistRegistryQA) {
-      LOGF(fatal, "QA histogram registry missing. Quitting...");
-      return;
-    }
-    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("histCent"), cent);
-    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("histMulti"), multi);
-    mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("histZvtx"), coll.posZ());
-  }
-
-  /// \brief Fill the track QA histograms in the centrality class.
-  /// \tparam cBin Centrality bin of the collision.
-  /// \tparam mode Fill the QA before/after the full selection.
-  /// \param track Track entry of the table.
-  // TODO: Add filling of the weight histograms.
-  template <int cBin, int mode, typename T>
-  void FillTrackQA(const T& track)
+  template <int mode, typename T>
+  void FillEventQA(const T& coll, int cBin, float cent, int multi)
   {
     if (!mHistRegistryQA) {
       LOGF(fatal, "QA histogram registry missing. Quitting...");
@@ -139,11 +124,145 @@ public:
     }
 
     static constexpr std::string_view subDir[] = {"Before/", "After/"};
+    switch (cBin) {
+    case 0 :
+      mHistRegistryQA->fill(HIST(mCentClasses[0])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[0])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[0])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 1 :
+      mHistRegistryQA->fill(HIST(mCentClasses[1])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[1])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[1])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 2 :
+      mHistRegistryQA->fill(HIST(mCentClasses[2])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[2])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[2])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 3 :
+      mHistRegistryQA->fill(HIST(mCentClasses[3])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[3])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[3])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 4 :
+      mHistRegistryQA->fill(HIST(mCentClasses[4])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[4])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[4])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 5 :
+      mHistRegistryQA->fill(HIST(mCentClasses[5])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[5])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[5])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 6 :
+      mHistRegistryQA->fill(HIST(mCentClasses[6])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[6])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[6])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 7 :
+      mHistRegistryQA->fill(HIST(mCentClasses[7])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[7])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[7])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 8 :
+      mHistRegistryQA->fill(HIST(mCentClasses[8])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[8])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[8])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    case 9 :
+      mHistRegistryQA->fill(HIST(mCentClasses[9])+HIST(subDir[mode])+HIST("histCent"), cent);
+      mHistRegistryQA->fill(HIST(mCentClasses[9])+HIST(subDir[mode])+HIST("histMulti"), multi);
+      mHistRegistryQA->fill(HIST(mCentClasses[9])+HIST(subDir[mode])+HIST("histZvtx"), coll.posZ());
+      break;
+    }
+
+    LOGF(info, "The EventQA has been filled.");
+  }
+
+  /// \brief Hardcode the cBin for FillThisTrackQA if not constant.
+  /// \tparam T Type of track.
+  /// \tparam mode Set if we fill Before/ or After/ objects.
+  /// \param track Track entry.
+  /// \param cBin Centrality bin of the collision.
+  /// \param weightNUE Value of the NUE weight to apply to pT.
+  /// \param weightNUA Value of the NUA weight to apply to phi.
+  template <int mode, typename T>
+  void FillTrackQA(const T& track, int cBin, float weightNUE = 1., float weightNUA = 1.)
+  {
+    if (!mHistRegistryQA) {
+      LOGF(fatal, "QA histogram registry missing. Quitting...");
+      return;
+    }
+
+    switch (cBin) {
+    case 0 :
+      FillThisTrackQA<0, mode>(track, weightNUE, weightNUA);
+      break;
+    case 1 :
+      FillThisTrackQA<1, mode>(track, weightNUE, weightNUA);
+      break;
+    case 2 :
+      FillThisTrackQA<2, mode>(track, weightNUE, weightNUA);
+      break;
+    case 3 :
+      FillThisTrackQA<3, mode>(track, weightNUE, weightNUA);
+      break;
+    case 4 :
+      FillThisTrackQA<4, mode>(track, weightNUE, weightNUA);
+      break;
+    case 5 :
+      FillThisTrackQA<5, mode>(track, weightNUE, weightNUA);
+      break;
+    case 6 :
+      FillThisTrackQA<6, mode>(track, weightNUE, weightNUA);
+      break;
+    case 7 :
+      FillThisTrackQA<7, mode>(track, weightNUE, weightNUA);
+      break;
+    case 8 :
+      FillThisTrackQA<8, mode>(track, weightNUE, weightNUA);
+      break;
+    case 9 :
+      FillThisTrackQA<9, mode>(track, weightNUE, weightNUA);
+      break;
+    }
+
+    if (mDebugLog) {
+      LOGF(info, "The TrackQA has been filled for cBin = %d and mode = %d.",cBin, mode);
+    }
+
+  }
+
+  /// \brief Fill the track QA histograms in a fixed centrality bin.
+  /// \tparam cBin Centrality bin of the collision.
+  /// \tparam mode Fill the QA before/after the full selection.
+  /// \param track Track entry of the table.
+  /// \param weightNUE Value of the NUE weight, the inverse is applied to pT.
+  /// \param weightNUA Value of the NUA weight, the inverse is applied to phi.
+  /// \note This method can be directly used if no switch is previously needed.
+  // TODO: Add filling of the weight histograms.
+  template <int cBin, int mode, typename T>
+  void FillThisTrackQA(const T& track, float weightNUE = 1., float weightNUA = 1.)
+  {
+    static constexpr std::string_view subDir[] = {"Before/", "After/"};
 
     mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histPt"), track.pt());
     mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histEta"), track.eta());
     mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histPhi"), track.phi());
     mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST(subDir[mode])+HIST("histCharge"), track.sign());
+
+    if (mode == 1) {  // 'Weight' distributions are defined only for After/.
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histPtCorrected"),
+                            track.pt(), 1./weightNUE);
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histPhiCorrected"),
+                            track.phi(), 1./weightNUA);
+
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histNUEWeights"),
+                            track.pt(), weightNUE);
+      mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histNUAWeights"),
+                            track.phi(), weightNUA);
+    }
 
     if (mSaveAllQA) {
       // TPC information.

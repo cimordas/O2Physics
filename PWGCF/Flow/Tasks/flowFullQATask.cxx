@@ -76,8 +76,8 @@ struct flowFullQATask
   Configurable<float> cfgZvtxMax{"cfgCutZvtx", 10.0f, "Maximum range for Zvtx."};
 
   // Set the track quality cuts. 
-  //Configurable<bool> cfgUseNUA{"cfgUseNUA", true, "Enable the use of NUA weights."};
-  //Configurable<bool> cfgUseNUE{"cfgUseNUE", true, "Enable the use of NUE weights."};
+  Configurable<bool> cfgUseNUA{"cfgUseNUA", true, "Enable the use of NUA weights."};
+  Configurable<bool> cfgUseNUE{"cfgUseNUE", true, "Enable the use of NUE weights."};
   Configurable<float> cfgPtMin{"cfgPtMin", 0.2f, "Minimum pT for tracks"};
   Configurable<float> cfgPtMax{"cfgPtMax", 5.0f, "Maximum pT for tracks"};
   Configurable<float> cfgEtaMax{"cfgEtaMax", 0.8f, "Maximum eta range."};
@@ -92,12 +92,6 @@ struct flowFullQATask
   } cfgCCDB;
   Service<o2::ccdb::BasicCCDBManager> ccdb;
   // NOTE: Add here variables related to the ccdb.
-
-  // Define here the filters to apply to the received data.
-
-  // Define the partitions used to distinguish the 'good' collisions and tracks
-  // from the 'bad' ones.
-  //SliceCache cache;
 
   /// \brief O2 function executed at the beginning of the task workflow.
   void init(InitContext const&)
@@ -140,87 +134,40 @@ struct flowFullQATask
       LOGF(info, "Centrality value: %.2f Centrality bin: %d", cent, cBin);
     }
 
-    // TODO: Deal with the filling before event cuts here.
-
     // We now perform the event selection to keep only the 'good' collisions
-    // for further processing.
+    // for further processing. The EventQA is filled before and after the
+    // selection.
+    if (cfgSaveQABefore) {histManager.FillEventQA<0>(coll, cBin, cent, nTracks);}
     if (abs(coll.posZ()) > cfgZvtxMax) {return;}
     if (!coll.sel8()) {return;} // TODO: Make it configurable.
+    histManager.FillEventQA<1>(coll, cBin, cent, nTracks);
 
-    //for (auto& track : tracks) {
-    //  // We look at the track QA only for the 'good' collisions only.
-//
-    //  // Apply the full track selection on the current track. It is marked as
-    //  // 'good' only if is passes all of it.
-    //  bool isTrackGood = (track.pt() > cfgPtMin) && (track.pt() < cfgPtMax)
-    //                  && (abs(track.eta()) < cfgEtaMax);
-//
-    //  switch (cBin) {
-    //  case 0 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<0,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<0,1>(track);}
-    //    break;
-    //  case 1 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<1,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<1,1>(track);}
-    //    break;
-    //  case 2 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<2,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<2,1>(track);}
-    //    break;
-    //  case 3 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<3,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<3,1>(track);}
-    //    break;
-    //  case 4 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<4,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<4,1>(track);}
-    //    break;
-    //  case 5 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<5,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<5,1>(track);}
-    //    break;
-    //  case 6 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<6,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<6,1>(track);}
-    //    break;
-    //  case 7 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<7,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<7,1>(track);}
-    //    break;
-    //  case 8 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<8,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<8,1>(track);}
-    //    break;
-    //  case 9 :
-    //    if (cfgSaveQABefore) {
-    //      histManager.FillTrackQA<9,0>(track);
-    //    }
-    //    if (isTrackGood) {histManager.FillTrackQA<9,1>(track);}
-    //    break;
-    //  }
+    for (auto& track : tracks) {
+      // We look at the track QA only for the 'good' collisions only. First, we
+      // fill the TrackQA before selection.
+      if (cfgSaveQABefore) {histManager.FillTrackQA<0>(track, cBin);}
 
-    //}
+      // We now apply the full track selection on the current track. It is marked as
+      // 'good' only if is passes all of it. In this case, the TrackQA is also
+      // filled for After/ once the weights have been obtained if needed..
+      bool isTrackGood = (track.pt() > cfgPtMin) && (track.pt() < cfgPtMax)
+                      && (abs(track.eta()) < cfgEtaMax);
+
+      float wNUE = 1.;  // NUE weight straight from weight distribution.
+                        // The inverse will be applied to pT.
+      if (cfgUseNUE) {
+        wNUE = 2.;  // TODO: Implement fetching of the weights.
+      }
+
+      float wNUA = 1.;  // NUA weight straight from weight distribution.
+                        // The inverse will be applied to phi.
+      if (cfgUseNUA) {
+        wNUA = 2.;  // TODO: Implement fetching of the weights.
+      }
+
+      if (isTrackGood) {histManager.FillTrackQA<1>(track, cBin, wNUE, wNUA);}
+    }
   }
-  
 };
 
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)

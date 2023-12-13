@@ -42,7 +42,7 @@ std::array<int, 2> FlowAC2hAnalysis::GetHarmoPair(int inPair)
 
 /// \brief Calculate the weighted Q-vectors for the vector of azimuthal angles.
 /// \param myAngles Azimuthal angles of the tracks in the collision.
-/// \param myWeights Associated particle weights.
+/// \param myWeights Associated inverted particle weights.
 void FlowAC2hAnalysis::CalculateQvectors(const std::vector<float>& myAngles,
                                          const std::vector<float>& myWeights)
 {
