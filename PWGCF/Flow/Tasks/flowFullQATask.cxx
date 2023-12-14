@@ -64,6 +64,7 @@ struct flowFullQATask
 
   // Enable the general features of the analysis task.
   Configurable<bool> cfgDebugLog{"cfgDebugLog", true, "Enable log for debug."};
+  Configurable<bool> cfgObtainNUA{"cfgObtainNUA", false, "Enable the 3D histogram for NUA."};
   Configurable<bool> cfgSaveQABefore{"cfgSaveQABefore", true,
                                      "Enable the QA before any selection."};
 
@@ -78,6 +79,8 @@ struct flowFullQATask
   // Set the track quality cuts. 
   Configurable<bool> cfgUseNUA{"cfgUseNUA", true, "Enable the use of NUA weights."};
   Configurable<bool> cfgUseNUE{"cfgUseNUE", true, "Enable the use of NUE weights."};
+  Configurable<bool> cfgUseVariablePtBins{"cfgUseVariablePtBins", false,
+                                          "Enable the use of variable pT bins."};
   Configurable<float> cfgPtMin{"cfgPtMin", 0.2f, "Minimum pT for tracks"};
   Configurable<float> cfgPtMax{"cfgPtMax", 5.0f, "Maximum pT for tracks"};
   Configurable<float> cfgEtaMax{"cfgEtaMax", 0.8f, "Maximum eta range."};
@@ -99,8 +102,10 @@ struct flowFullQATask
     // Initialise the histogram manager for the QA objects.
     histManager.SetHistRegistryQA(&qaHistRegistry);
     histManager.SetDebugLog(cfgDebugLog);
+    histManager.SetObtainNUA(cfgObtainNUA);
     histManager.SetSaveAllQA(true);   // Full QA is always saved by default.
     histManager.SetSaveQABefore(cfgSaveQABefore);
+    histManager.SetUseVariablePtBins(cfgUseVariablePtBins);
     histManager.CreateHistQA();
 
     // Setup the access to the CCDB objects.
@@ -165,7 +170,7 @@ struct flowFullQATask
         wNUA = 2.;  // TODO: Implement fetching of the weights.
       }
 
-      if (isTrackGood) {histManager.FillTrackQA<1>(track, cBin, wNUE, wNUA);}
+      if (isTrackGood) {histManager.FillTrackQA<1>(track, cBin, wNUE, wNUA, coll.posZ());}
     }
   }
 };

@@ -90,6 +90,8 @@ struct flowAC2hAnalysisTask
   // Set the track quality cuts. 
   Configurable<bool> cfgUseNUA{"cfgUseNUA", true, "Enable the use of NUA weights."};
   Configurable<bool> cfgUseNUE{"cfgUseNUE", true, "Enable the use of NUE weights."};
+  Configurable<bool> cfgUseVariablePtBins{"cfgUseVariablePtBins", false,
+                                          "Enable the use of variable pT bins."};
   Configurable<float> cfgPtMin{"cfgPtMin", 0.2f, "Minimum pT for tracks"};
   Configurable<float> cfgPtMax{"cfgPtMax", 5.0f, "Maximum pT for tracks"};
   Configurable<float> cfgEtaMax{"cfgEtaMax", 0.8f, "Maximum eta range."};
@@ -127,8 +129,10 @@ struct flowAC2hAnalysisTask
     // Initialise the histogram manager for the QA and AN objects.
     histManager.SetHistRegistryQA(&qaHistRegistry);
     histManager.SetDebugLog(cfgDebugLog);
+    histManager.SetObtainNUA(false);  // Disabled by default.
     histManager.SetSaveAllQA(false);  // Full QA is always disabled by default.
     histManager.SetSaveQABefore(false);   // No QA before selection saved.
+    histManager.SetUseVariablePtBins(cfgUseVariablePtBins);
     if (cfgSaveQA) {histManager.CreateHistQA();}
 
     histManager.SetHistRegistryAN(&anHistRegistry);

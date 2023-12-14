@@ -21,6 +21,8 @@
 #include <string_view>
 #include <TH1.h>
 #include <TH2.h>
+#include <TH3.h>
+//#include <THnSparse.h> // TODO: See if more advantageous for more events.
 #include <TProfile.h>
 #include <TProfile2D.h>
 
@@ -67,6 +69,13 @@ public:
   }
   bool GetDebugLog() const {return mDebugLog;}
 
+  void SetObtainNUA(bool nua)
+  {
+    mObtainNUA = nua;
+    LOGF(info, "Obtain 3D Zvtx-eta-phi distribution: %d", mObtainNUA);
+  }
+  bool GetObtainNUA() const {return mObtainNUA;}
+
   void SetSaveAllQA(bool saveQA)
   {
     mSaveAllQA = saveQA;
@@ -87,6 +96,13 @@ public:
     LOGF(info, "Use eta gap: %d.", mUseEtaGap);
   }
   bool GetUseEtaGap() const {return mUseEtaGap;}
+
+  void SetUseVariablePtBins(bool myAxis)
+  {
+    mUseVariablePtBins = myAxis;
+    LOGF(info, "Use variable pT binning: %d.", mUseVariablePtBins);
+  }
+  bool GetUseVariablePtBins() const {return mUseVariablePtBins;}
 
   void SetNcombis2h(int myCombis)
   {
@@ -188,7 +204,7 @@ public:
   /// \param weightNUE Value of the NUE weight to apply to pT.
   /// \param weightNUA Value of the NUA weight to apply to phi.
   template <int mode, typename T>
-  void FillTrackQA(const T& track, int cBin, float weightNUE = 1., float weightNUA = 1.)
+  void FillTrackQA(const T& track, int cBin, float weightNUE = 1., float weightNUA = 1., float zVtx = 0.)
   {
     if (!mHistRegistryQA) {
       LOGF(fatal, "QA histogram registry missing. Quitting...");
@@ -197,34 +213,34 @@ public:
 
     switch (cBin) {
     case 0 :
-      FillThisTrackQA<0, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<0, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 1 :
-      FillThisTrackQA<1, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<1, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 2 :
-      FillThisTrackQA<2, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<2, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 3 :
-      FillThisTrackQA<3, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<3, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 4 :
-      FillThisTrackQA<4, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<4, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 5 :
-      FillThisTrackQA<5, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<5, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 6 :
-      FillThisTrackQA<6, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<6, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 7 :
-      FillThisTrackQA<7, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<7, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 8 :
-      FillThisTrackQA<8, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<8, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     case 9 :
-      FillThisTrackQA<9, mode>(track, weightNUE, weightNUA);
+      FillThisTrackQA<9, mode>(track, weightNUE, weightNUA, zVtx);
       break;
     }
 
@@ -243,7 +259,7 @@ public:
   /// \note This method can be directly used if no switch is previously needed.
   // TODO: Add filling of the weight histograms.
   template <int cBin, int mode, typename T>
-  void FillThisTrackQA(const T& track, float weightNUE = 1., float weightNUA = 1.)
+  void FillThisTrackQA(const T& track, float weightNUE = 1., float weightNUA = 1., float zVtx = 0.)
   {
     static constexpr std::string_view subDir[] = {"Before/", "After/"};
 
@@ -262,6 +278,12 @@ public:
                             track.pt(), weightNUE);
       mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histNUAWeights"),
                             track.phi(), weightNUA);
+
+      // 3D distribution Zvtx-eta-phi.
+      if (mObtainNUA) {
+          mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histZvtxEtaPhi"),
+                                zVtx, track.eta(), track.phi());
+      }
     }
 
     if (mSaveAllQA) {
@@ -383,9 +405,11 @@ private:
   HistogramRegistry *mHistRegistryAN = nullptr;   ///< For the analysis output.
 
   bool mDebugLog = true;        ///< Enable to print additional log for debug.
+  bool mObtainNUA = false;      ///< Enable to get the 3D Zvtx-eta-phi distribution for NUA.
   bool mSaveAllQA = false;      ///< Save the additional QA (true for QA task).
   bool mSaveQABefore = false;   ///< Save the QA output before any selection.
   bool mUseEtaGap = true;   ///< Enable the eta gap of the 2-particle correlators.
+  bool mUseVariablePtBins = false;  ///< Enable the use of a variable width pT binning.
   int mNcombis2h = 3;   ///< Number of pairs of harmonics.
   int mNsamples = 20;   ///< Number of samples for the bootstrap.
 

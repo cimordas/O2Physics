@@ -35,12 +35,11 @@ void FlowAC2hHistManager::CreateHistQA()
   // Definition of the QA histograms.
   // All the histograms are defined in details for the first centrality
   // class after additional cuts, then cloned for the other classes.
-
-  const AxisSpec axisCent{110, 0., 110., "Centrality percentile"};
+  const AxisSpec axisCent{100, 0., 100., "Centrality percentile"};
   mHistRegistryQA->add("Centrality_00-01/After/histCent", "Centrality",
                        HistType::kTH1F, {axisCent}, true);
 
-  const AxisSpec axisMulti{1000, 0., 25000., "N_{tracks}"};
+  const AxisSpec axisMulti{2500, 0., 25000., "N_{tracks}"};
   mHistRegistryQA->add("Centrality_00-01/After/histMulti", "Multiplicity",
                        HistType::kTH1I, {axisMulti}, true);
 
@@ -48,15 +47,15 @@ void FlowAC2hHistManager::CreateHistQA()
   mHistRegistryQA->add("Centrality_00-01/After/histZvtx", "Z_{vtx}",
                        HistType::kTH1F, {axisZvtx}, true);
 
-/*If a variable binning is needed.
-  std::vector<double> ptBinning = {0., 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
-                                  0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75,
-                                  0.8, 0.85, 0.9, 0.95, 1., 1.1, 1.2, 1.3, 1.4,
-                                  1.5, 1.6, 1.7, 1.8, 1.9, 2., 2.2, 2.4, 2.6,
-                                  2.8, 3., 3.2, 3.4, 3.6, 3.8, 4., 4.5, 5., 6.};
-  const AxisSpec axisPt = {ptBinning, "#it{p}_{T} [GeV/#it{c}]"};
-*/
-  const AxisSpec axisPt = {60, 0., 6., "#it{p}_{T} [GeV/#it{c}]"};
+  AxisSpec axisPt = {60, 0., 6., "#it{p}_{T} [GeV/#it{c}]"};
+  if (mUseVariablePtBins) {
+    std::vector<double> ptBinning = {0., 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35,
+                                    0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75,
+                                    0.8, 0.85, 0.9, 0.95, 1., 1.1, 1.2, 1.3, 1.4,
+                                    1.5, 1.6, 1.7, 1.8, 1.9, 2., 2.2, 2.4, 2.6,
+                                    2.8, 3., 3.2, 3.4, 3.6, 3.8, 4., 4.5, 5., 6.};
+    axisPt = {ptBinning, "#it{p}_{T} [GeV/#it{c}]"};
+  }
   mHistRegistryQA->add("Centrality_00-01/After/histPt", "#it{p}_{T} (no NUE)",
                        HistType::kTH1F, {axisPt}, true);
 
@@ -130,6 +129,11 @@ void FlowAC2hHistManager::CreateHistQA()
       // Clone all the QA for the Before/ distributions.
       mHistRegistryQA->addClone("Centrality_00-01/After/", "Centrality_00-01/Before/");
     }
+  }
+
+  if (mObtainNUA) { // TODO: Replace with THnSparse if better with more events.
+    mHistRegistryQA->add("Centrality_00-01/After/histZvtxEtaPhi", "Zvtx-eta-phi",
+                         HistType::kTH3F, {axisZvtx, axisEta, axisPhi}, true);
   }
 
   // Add NUE/NUA related histograms for pT and phi only in After/.
