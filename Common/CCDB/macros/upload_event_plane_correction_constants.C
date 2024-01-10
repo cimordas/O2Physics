@@ -60,6 +60,7 @@ void GetRescale(TH2* h, std::vector<float>& corr)
 void upload_event_plane_correction_constants(const string fInput = "/home/cindy/cernbox/MyProjects/EP_O2-Tests/Train135707_AnalysisResults.root",
                                              const string ccdbPath = "http://ccdb-test.cern.ch:8080",
                                             //const string ccdbPath = "http://alice-ccdb.cern.ch",
+                                             const string ccdbInternalPath = "EventPlane/QVectors/Corrections",
                                              const string period = "LHC22s",
                                              const string pass = "pass5")
                                             //const string run = "",
@@ -136,7 +137,7 @@ void upload_event_plane_correction_constants(const string fInput = "/home/cindy/
         ULong64_t sor = 1672531200000;
         ULong64_t eor = 1893456000000;
 
-        ccdb.storeAsTFileAny(&corrConst, Form("EventPlaneCalib/%s", detNames[j]), metadata, sor, eor);
+        ccdb.storeAsTFileAny(&corrConst, Form("%s/%s", ccdbInternalPath.data(), detNames[j]), metadata, sor, eor);
 
         // Reset the information for the next detector.
         corrConst.clear();

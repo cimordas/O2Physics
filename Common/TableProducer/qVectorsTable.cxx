@@ -132,13 +132,13 @@ struct qVectorsTable {
 
     LOGF(info, "Getting the correction constants from the CCDB...");
     // NOTE: Add here the access to FTOA, FV0A, etc.
-    corrConstFT0C = ccdb->getForTimeStamp<std::vector<float>>("EventPlaneCalib/FT0C",
+    corrConstFT0C = ccdb->getForTimeStamp<std::vector<float>>("EventPlane/QVectors/Corrections/FT0C",
                                                               cfgCcdbParam.nolaterthan.value);
 
-    corrConstBPos = ccdb->getForTimeStamp<std::vector<float>>("EventPlaneCalib/BPos",
+    corrConstBPos = ccdb->getForTimeStamp<std::vector<float>>("EventPlane/QVectors/Corrections/BPos",
                                                               cfgCcdbParam.nolaterthan.value);
 
-    corrConstBNeg = ccdb->getForTimeStamp<std::vector<float>>("EventPlaneCalib/BNeg",
+    corrConstBNeg = ccdb->getForTimeStamp<std::vector<float>>("EventPlane/QVectors/Corrections/BNeg",
                                                               cfgCcdbParam.nolaterthan.value);
 
     if (corrConstFT0C == nullptr) {
