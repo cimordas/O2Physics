@@ -39,8 +39,8 @@ void GetTwist(TH2* h, std::vector<float>& corr)
     float aPlus = (float)TMath::Sqrt(2. * TMath::Power(h->GetStdDev(1), 2.) - TMath::Power(b, 2.));
     float aMinus = (float)TMath::Sqrt(2. * TMath::Power(h->GetStdDev(2), 2.) - TMath::Power(b, 2.));
 
-    corr.push_back(b / aPlus);
-    corr.push_back(b / aMinus);
+    corr.push_back(b / aPlus);  // lambdaPlus
+    corr.push_back(b / aMinus); // lambdaMinus
 }
 
 void GetRescale(TH2* h, std::vector<float>& corr)
@@ -57,10 +57,10 @@ void GetRescale(TH2* h, std::vector<float>& corr)
 // \param fInput Input AnalysisResult.root where the histograms Qx-Qy can be found.
 // NOTE: period and pass are some of the metadata for the ccdb.
 // NOTE: run and harmonic disabled for now. They will be renabled if a run/harmonic dependence is seen.
-void upload_event_plane_correction_constants(const string fInput = "/home/cindy/cernbox/MyProjects/EP_O2-Tests/Train135707_AnalysisResults.root",
+void upload_event_plane_correction_constants(const string fInput = "/home/cindy/cernbox/MyProjects/EP_O2-Tests/Train152016_AnalysisResults.root",
                                              const string ccdbPath = "http://ccdb-test.cern.ch:8080",
                                             //const string ccdbPath = "http://alice-ccdb.cern.ch",
-                                             const string ccdbInternalPath = "EventPlane/QVectors/Corrections",
+                                             const string ccdbInternalPath = "Analysis/EventPlane/QVecCorrections",
                                              const string period = "LHC22s",
                                              const string pass = "pass5")
                                             //const string run = "",
@@ -73,11 +73,17 @@ void upload_event_plane_correction_constants(const string fInput = "/home/cindy/
     ccdb.init(Form("%s", ccdbPath.data()));
 
     // Format the vector of correction constants for each centrality class and detector.
-    const int nDet = 3; //6;    // FIXME: Update when the final structure with all detectors is in.
+    const int nPath = 2;     // FIXME: Update when the final structure with all detectors is in.
+    const string pathNames[nPath] = {
+        "q-vectors-correction_id5579",  // FIT related estimators.
+        "q-vectors-correction_id7659"   // Central barrel estimators.
+    };
+
+    const int nDet = 5; //6;    // FIXME: Update when the final structure with all detectors is in.
     const char detNames[nDet][1000] = {
         "FT0C",
-        //"FT0A",
-        //"FT0M",
+        "FT0A",
+        "FT0M",
         //"FV0A",
         "BPos",
         "BNeg"
@@ -103,9 +109,26 @@ void upload_event_plane_correction_constants(const string fInput = "/home/cindy/
 
     for (int j = 0; j < nDet; j++) {
         for (int i = 0; i < nBins; i++) {
-            dirInput = (TDirectoryFile*)fileInput->GetDirectory(Form("q-vectors-correction/%s", dirNames[i]));
-            if (j == 0) {hQv = (TH2D*)dirInput->Get("histQvecUncor");}    // FIXME: Update when the final structure with all detectors is in.
-            else {hQv = (TH2D*)dirInput->Get(Form("histQvec%sUncor", detNames[j]));}
+            if (j < 3) {    // We have a FIT estimator.
+                dirInput = (TDirectoryFile*)fileInput->GetDirectory(Form("%s/%s", pathNames[0].c_str(), dirNames[i]));
+            }
+            else {  // We have a central barrel estimator.
+                dirInput = (TDirectoryFile*)fileInput->GetDirectory(Form("%s/%s", pathNames[1].c_str(), dirNames[i]));  
+            }
+
+            if (!dirInput) {
+                printf("Centrality directory not found\n");
+                return;
+            }
+
+            switch (j) {
+                case 0: hQv = (TH2D*)dirInput->Get("histQvecUncor"); break; // FT0C.
+                case 1: hQv = (TH2D*)dirInput->Get("histQvecRefAUncor"); break; // FT0A.
+                case 2: hQv = (TH2D*)dirInput->Get("histQvecRefBUncor"); break; // FT0M.
+                case 3: hQv = (TH2D*)dirInput->Get("histQvecRefAUncor"); break; // BPos.
+                case 4: hQv = (TH2D*)dirInput->Get("histQvecRefBUncor"); break; // BNeg.
+            }
+
             if (!hQv) {
                 printf("Histogram not found\n");
                 return;
@@ -117,7 +140,7 @@ void upload_event_plane_correction_constants(const string fInput = "/home/cindy/
             GetRescale(hQv, corrConst);
         }
         /* 
-        printf("Vector: ");
+        printf("Vector: ");     // Debug.
         for (int i = 0; i < nBins*6; i++) {
             printf("%e ,", corrConst[i]);
         }
