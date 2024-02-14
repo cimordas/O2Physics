@@ -10,11 +10,13 @@
 # or submit itself to any jurisdiction.
 
 o2physics_add_library(PWGFlowCore
-                      SOURCES  FlowAC2hHistManager.cxx
-                      FlowAC2hAnalysis.cxx
+                      SOURCES  FlowJHistManager.cxx
+                      FlowJAC2hHistManager.cxx
+                      FlowJAC2hAnalysis.cxx
                       PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore)
 
 o2physics_target_root_dictionary(PWGFlowCore
-                                  HEADERS FlowAC2hHistManager.h
-                                  FlowAC2hAnalysis.h
+                                  HEADERS FlowJHistManager.h
+                                  FlowJAC2hHistManager.h
+                                  FlowJAC2hAnalysis.h
                                   LINKDEF PWGCFFlowLinkDef.h)

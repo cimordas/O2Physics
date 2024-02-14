@@ -14,7 +14,7 @@
 // O2 headers. //
 
 // O2 Physics headers.
-#include "PWGCF/Flow/Core/FlowAC2hAnalysis.h"
+#include "PWGCF/Flow/Core/FlowJAC2hAnalysis.h"
 
 /* Namespaces. */
 using namespace o2;
@@ -25,7 +25,7 @@ namespace o2::analysis::PWGCF
 /// \brief Decompose the provided integer into his two components.
 /// \param inPair Integer representing the input pair of harmonics.
 /// \return 2D array with the decomposed pair.
-std::array<int, 2> FlowAC2hAnalysis::GetHarmoPair(int inPair)
+std::array<int, 2> FlowJAC2hAnalysis::GetHarmoPair(int inPair)
 {
   std::array<int, 2> pair;
   /* Security check to ensure proper behaviour. */
@@ -43,8 +43,8 @@ std::array<int, 2> FlowAC2hAnalysis::GetHarmoPair(int inPair)
 /// \brief Calculate the weighted Q-vectors for the vector of azimuthal angles.
 /// \param myAngles Azimuthal angles of the tracks in the collision.
 /// \param myWeights Associated inverted particle weights.
-void FlowAC2hAnalysis::CalculateQvectors(const std::vector<float>& myAngles,
-                                         const std::vector<float>& myWeights)
+void FlowJAC2hAnalysis::CalculateQvectors(const std::vector<float>& myAngles,
+                                          const std::vector<float>& myWeights)
 {
   /* Security checks: all Q-vectors must initially be zero. */
   for (auto& Qn : mQvectors) {
@@ -74,7 +74,7 @@ void FlowAC2hAnalysis::CalculateQvectors(const std::vector<float>& myAngles,
 /// \param harmoN Harmonic n of Q(n,p).
 /// \param power Power p of Q(n,p).
 /// \return Corresponding Q-vector value.
-TComplex FlowAC2hAnalysis::Q(const int harmoN, const int power)
+TComplex FlowJAC2hAnalysis::Q(const int harmoN, const int power)
 {
   if (harmoN >= 0) {return mQvectors[harmoN][power];}
   return TComplex::Conjugate(mQvectors[-harmoN][power]);
@@ -86,8 +86,8 @@ TComplex FlowAC2hAnalysis::Q(const int harmoN, const int power)
 /// \return Complex value of the multiparticle correlator.
 /// \note Improved faster version) originally developed by Kristjan Gulbrandsen
 /// (gulbrand@nbi.dk).
-TComplex FlowAC2hAnalysis::CalculateRecursion(int n, int *harmonic,
-                                              int mult, int skip)
+TComplex FlowJAC2hAnalysis::CalculateRecursion(int n, int *harmonic,
+                                               int mult, int skip)
 {
   Int_t nm1 = n-1;
   TComplex c(Q(harmonic[nm1], mult));
@@ -124,7 +124,7 @@ TComplex FlowAC2hAnalysis::CalculateRecursion(int n, int *harmonic,
 /// \brief Compute and fill the profiles with all the needed correlators.
 /// \param myCentBin Bin index for the centrality class of the collision.
 /// \param mySample Sample index attributed to this collision.
-void FlowAC2hAnalysis::ComputeAllCorrel(const int myCentBin, const int mySample)
+void FlowJAC2hAnalysis::ComputeAllCorrel(const int myCentBin, const int mySample)
 {
   if (mDebugPrint) {LOGF(info, "myCentBin: %d mySample: %d", myCentBin, mySample);}
 
@@ -291,8 +291,8 @@ void FlowAC2hAnalysis::ComputeAllCorrel(const int myCentBin, const int mySample)
 /// \param myEventWeight Value of the event weight (= denominator).
 /// \param myHarmos Array of harmonics for the numerator.
 /// \return Real value of the multiparticle correlator.
-double FlowAC2hAnalysis::ComputeThisCorrel(const int nPC, const double myEventWeight,
-                                           const int (&myHarmos)[7])
+double FlowJAC2hAnalysis::ComputeThisCorrel(const int nPC, const double myEventWeight,
+                                            const int (&myHarmos)[7])
 {
   if (mDebugPrint) {
     LOGF(info, "Computing %d-particle correlator without eta gap", nPC);
@@ -336,9 +336,9 @@ double FlowAC2hAnalysis::ComputeThisCorrel(const int nPC, const double myEventWe
 }
 
 
-void FlowAC2hAnalysis::ComputeCorrelEtaGap(const std::vector<float>& myAngles,
-                                             const std::vector<float>& myWeights,
-                                             const std::vector<float>& myEtas)
+void FlowJAC2hAnalysis::ComputeCorrelEtaGap(const std::vector<float>& myAngles,
+                                            const std::vector<float>& myWeights,
+                                            const std::vector<float>& myEtas)
 {
   if (mDebugPrint) {
     LOGF(info, "Computing 2-particle correlators with eta gap.");
@@ -390,7 +390,6 @@ void FlowAC2hAnalysis::ComputeCorrelEtaGap(const std::vector<float>& myAngles,
     m2pCorrelEtaGap[iH][0] = (cCorrel.Re())/(multiNeg[iH]*multiPos[iH]);  // 2-particle correlator.
     m2pCorrelEtaGap[iH][1] = multiNeg[iH]*multiPos[iH];   // Associated weight for the profile2D.
   }   // Go to the next harmonic.
-
 }
 
 } // namespace o2::analysis::PWGCF

@@ -36,8 +36,9 @@
 #include "Common/Core/TrackSelection.h"
 #include "Common/DataModel/TrackSelectionTables.h"
 
-#include "PWGCF/Flow/Core/FlowAC2hHistManager.h"
-#include "PWGCF/Flow/Core/FlowAC2hAnalysis.h"
+#include "PWGCF/Flow/Core/FlowJHistManager.h"
+#include "PWGCF/Flow/Core/FlowJAC2hHistManager.h"
+#include "PWGCF/Flow/Core/FlowJAC2hAnalysis.h"
 
 // Namespaces and definitions.
 using namespace o2;
@@ -54,22 +55,23 @@ using MyTracks = soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA>;
 // ----------------------------------------------------------------------------
 // Analysis task starts here.
 // ----------------------------------------------------------------------------
-struct flowAC2hAnalysisTask
+struct flowJAC2hAnalysisTask
 {
   // Declare the histogram registries and instance of their manager.
   // Objects in the registries are saved in alphabetical order (true) and in
   // TDirectoryFile (true). Multiple registries are needed to avoid going over
   // the limit of objects per registry (max: 512).
-  FlowAC2hHistManager histManager;
+  FlowJHistManager qaHistManager;
   HistogramRegistry qaHistRegistry{"qaHistRegistry", {},
                                     OutputObjHandlingPolicy::AnalysisObject,
                                     true, true};
+  FlowJAC2hHistManager anHistManager;
   HistogramRegistry anHistRegistry{"anHistRegistry", {},
                                     OutputObjHandlingPolicy::AnalysisObject,
                                     true, true};
 
   // Enable the general features of the analysis task.
-  FlowAC2hAnalysis acAnalysis;
+  FlowJAC2hAnalysis acAnalysis;
   Configurable<bool> cfgDebugLog{"cfgDebugLog", true, "Enable log for debug."};
   Configurable<bool> cfgSaveQA{"cfgSaveQA", true, "Enable the QA histograms."};
   Configurable<bool> cfgUseEtaGap{"cfgUseEtaGap", true,
@@ -98,6 +100,7 @@ struct flowAC2hAnalysisTask
 
   // Set the access to the CCDB for the NUA/NUE weights.
   struct : ConfigurableGroup {
+    Configurable<bool> cfgUseCCDB{"cfgUseCCDB", true, "Use the CCDB for the NUA/NUE corrections."};
     Configurable<std::string> cfgURL{"cfgURL", "http://alice-ccdb.cern.ch",
                                      "Address of the CCDB to get the NUA/NUE."};
     Configurable<long> cfgTime{"ccdb-no-later-than",
@@ -127,31 +130,33 @@ struct flowAC2hAnalysisTask
     gRandom = new TRandom3(0);
 
     // Initialise the histogram manager for the QA and AN objects.
-    histManager.SetHistRegistryQA(&qaHistRegistry);
-    histManager.SetDebugLog(cfgDebugLog);
-    histManager.SetObtainNUA(false);  // Disabled by default.
-    histManager.SetSaveAllQA(false);  // Full QA is always disabled by default.
-    histManager.SetSaveQABefore(false);   // No QA before selection saved.
-    histManager.SetUseVariablePtBins(cfgUseVariablePtBins);
-    if (cfgSaveQA) {histManager.CreateHistQA();}
+    qaHistManager.SetHistRegistryQA(&qaHistRegistry);
+    qaHistManager.SetDebugLog(cfgDebugLog);
+    qaHistManager.SetObtainNUA(false);  // Disabled by default.
+    qaHistManager.SetSaveAllQA(false);  // Full QA is always disabled by default.
+    qaHistManager.SetSaveQABefore(false);   // No QA before selection saved.
+    qaHistManager.SetUseVariablePtBins(cfgUseVariablePtBins);
+    if (cfgSaveQA) {qaHistManager.CreateHistQA();}
 
-    histManager.SetHistRegistryAN(&anHistRegistry);
-    histManager.SetNcombis2h(cfgNcombis2h);
-    histManager.SetNsamples(cfgNsamples);
-    histManager.SetEtaGap(cfgUseEtaGap);
-    histManager.CreateHistAN();
+    anHistManager.SetHistRegistryAN(&anHistRegistry);
+    anHistManager.SetNcombis2h(cfgNcombis2h);
+    anHistManager.SetNsamples(cfgNsamples);
+    anHistManager.SetEtaGap(cfgUseEtaGap);
+    anHistManager.CreateHistAN();
 
     // Initialize the analysis class instance.
-    acAnalysis.SetAC2hHistManager(histManager);
+    acAnalysis.SetAC2hHistManager(anHistManager);
     acAnalysis.SetDebugPrint(cfgDebugLog);
     acAnalysis.Set2hPairs(cfg2hHarmos);
     acAnalysis.SetEtaGap(cfgUseEtaGap, cfgEtaGap);
   
     // Setup the access to the CCDB objects.
-    ccdb->setURL(cfgCCDB.cfgURL);
-    ccdb->setCaching(true);
-    ccdb->setLocalObjectValidityChecking();
-    ccdb->setCreatedNotAfter(cfgCCDB.cfgTime.value);
+    if (cfgCCDB.cfgUseCCDB) {
+      ccdb->setURL(cfgCCDB.cfgURL);
+      ccdb->setCaching(true);
+      ccdb->setLocalObjectValidityChecking();
+      ccdb->setCreatedNotAfter(cfgCCDB.cfgTime.value);
+    }
     // NOTE: Add here the access to specific objects.
   }
 
@@ -174,7 +179,7 @@ struct flowAC2hAnalysisTask
       case NTPV : cent = coll.centNTPV(); break;
     }
     if (cent < 0. || cent > 70.) {return;}
-    int cBin = histManager.GetCentBin(cent);
+    int cBin = qaHistManager.GetCentBin(cent);
 
     if (cfgDebugLog) {
       LOGF(info, "Number of tracks in this collision: %d", nTracks);
@@ -212,8 +217,8 @@ struct flowAC2hAnalysisTask
       trackWeight.push_back(1./(wNUE*wNUA));
 
       if (cfgSaveQA) {
-        if (isFirstTrack) {histManager.FillEventQA<1>(coll, cBin, cent, nTracks);}
-        histManager.FillTrackQA<1>(track, cBin,  wNUE, wNUA);
+        if (isFirstTrack) {qaHistManager.FillEventQA<1>(coll, cBin, cent, nTracks);}
+        qaHistManager.FillTrackQA<1>(track, cBin,  wNUE, wNUA);
       }
 
       // Indicate when the first track of the collision has been analysed.
@@ -238,6 +243,6 @@ struct flowAC2hAnalysisTask
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {
   return WorkflowSpec{
-    adaptAnalysisTask<flowAC2hAnalysisTask>(cfgc)
+    adaptAnalysisTask<flowJAC2hAnalysisTask>(cfgc)
   };
 }

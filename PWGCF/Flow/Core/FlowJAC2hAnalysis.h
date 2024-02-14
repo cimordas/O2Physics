@@ -12,8 +12,8 @@
 // \brief   Calculation class for the AC-related analyses.
 // \author  Cindy Mordasini (cindy.mordasini@cern.ch)
 
-#ifndef PWGCF_FLOW_CORE_FLOWAC2HANALYSIS_H
-#define PWGCF_FLOW_CORE_FLOWAC2HANALYSIS_H
+#ifndef PWGCF_FLOW_CORE_FLOWJAC2HANALYSIS_H
+#define PWGCF_FLOW_CORE_FLOWJAC2HANALYSIS_H
 
 /* Header files. */
 #include <array>
@@ -25,7 +25,7 @@
 #include "Framework/HistogramRegistry.h"
 
 // O2 Physics headers.
-#include "PWGCF/Flow/Core/FlowAC2hHistManager.h"
+#include "PWGCF/Flow/Core/FlowJAC2hHistManager.h"
 
 /* Namespaces. */
 using namespace o2;
@@ -34,18 +34,18 @@ using namespace o2::framework;
 /* Class for the calculations of the correlator terms needed in AC studies. */
 namespace o2::analysis::PWGCF
 {
-class FlowAC2hAnalysis
+class FlowJAC2hAnalysis
 {
 public:
-  FlowAC2hAnalysis() = default;   // Constructor.
+  FlowJAC2hAnalysis() = default;   // Constructor.
 
   /* Setters and getters. */
-  void SetAC2hHistManager(FlowAC2hHistManager thisManager)
+  void SetAC2hHistManager(FlowJAC2hHistManager thisManager)
   {
     mAC2hHistManager = thisManager;
     LOGF(info, "Histogram manager successfully set.");
   }
-  FlowAC2hHistManager GetAC2hHistManager() const {return mAC2hHistManager;}
+  FlowJAC2hHistManager GetAC2hHistManager() const {return mAC2hHistManager;}
 
   void SetDebugPrint(bool debug)
   {
@@ -88,7 +88,7 @@ public:
                              const std::vector<float>& myEtas);
 
 private:
-  FlowAC2hHistManager mAC2hHistManager;  ///< Link to the histogram manager.
+  FlowJAC2hHistManager mAC2hHistManager;  ///< Link to the analysis histogram manager.
 
   bool mDebugPrint = true;    ///< Class verbosity. 0: none, 1: debug.
   bool mUseEtaGap = true;     ///< Enable the eta gap calculations of the 2-particle correlators.
@@ -110,7 +110,7 @@ private:
   std::array<std::array<TComplex, 11>, 61> mQvectors;   ///< Q(n,p) for all (n,p).
                                 // Dimensions must match [mNqHarmos][mNqPowers].
 
-  ClassDefNV(FlowAC2hAnalysis, 1);
+  ClassDefNV(FlowJAC2hAnalysis, 1);
 };
 } // namespace o2::analysis::PWGCF
 

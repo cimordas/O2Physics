@@ -35,7 +35,7 @@
 #include "Common/Core/TrackSelection.h"
 #include "Common/DataModel/TrackSelectionTables.h"
 
-#include "PWGCF/Flow/Core/FlowAC2hHistManager.h"
+#include "PWGCF/Flow/Core/FlowJHistManager.h"
 
 // Namespaces and definitions.
 using namespace o2;
@@ -52,15 +52,15 @@ using MyTracks = soa::Join<aod::Tracks, aod::TracksExtra, aod::TracksDCA>;
 // ----------------------------------------------------------------------------
 // QA task starts here.
 // ----------------------------------------------------------------------------
-struct flowFullQATask
+struct flowJFullQATask
 {
   // Declare the histogram registry and instance of its manager.
   // Objects in the registries are saved in alphabetical order (true) and in
   // TDirectoryFile (true).
-  FlowAC2hHistManager histManager;
+  FlowJHistManager histManager;
   HistogramRegistry qaHistRegistry{"qaHistRegistry", {},
-                                    OutputObjHandlingPolicy::AnalysisObject,
-                                    true, true};
+                                   OutputObjHandlingPolicy::AnalysisObject,
+                                   true, true};
 
   // Enable the general features of the analysis task.
   Configurable<bool> cfgDebugLog{"cfgDebugLog", true, "Enable log for debug."};
@@ -87,11 +87,12 @@ struct flowFullQATask
 
   // Set the access to the CCDB for the NUA/NUE weights.
   struct : ConfigurableGroup {
+    Configurable<bool> cfgUseCCDB{"cfgUseCCDB", true, "Use the CCDB for the NUA/NUE corrections."};
     Configurable<std::string> cfgURL{"cfgURL", "http://alice-ccdb.cern.ch",
                                      "Address of the CCDB to get the NUA/NUE."};
     Configurable<long> cfgTime{"ccdb-no-later-than",
-                              std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(),
-                              "Latest acceptable timestamp of creation for the object."};
+                               std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count(),
+                               "Latest acceptable timestamp of creation for the object."};
   } cfgCCDB;
   Service<o2::ccdb::BasicCCDBManager> ccdb;
   // NOTE: Add here variables related to the ccdb.
@@ -109,10 +110,12 @@ struct flowFullQATask
     histManager.CreateHistQA();
 
     // Setup the access to the CCDB objects.
-    ccdb->setURL(cfgCCDB.cfgURL);
-    ccdb->setCaching(true);
-    ccdb->setLocalObjectValidityChecking();
-    ccdb->setCreatedNotAfter(cfgCCDB.cfgTime.value);
+    if (cfgCCDB.cfgUseCCDB) {
+      ccdb->setURL(cfgCCDB.cfgURL);
+      ccdb->setCaching(true);
+      ccdb->setLocalObjectValidityChecking();
+      ccdb->setCreatedNotAfter(cfgCCDB.cfgTime.value);
+    }
   }
 
   /// \brief O2 function executed for each collision.
@@ -178,6 +181,7 @@ struct flowFullQATask
 WorkflowSpec defineDataProcessing(ConfigContext const& cfgc)
 {
   return WorkflowSpec{
-    adaptAnalysisTask<flowFullQATask>(cfgc)
+    adaptAnalysisTask<flowJFullQATask>(cfgc)
   };
 }
+
