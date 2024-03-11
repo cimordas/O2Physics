@@ -12,13 +12,13 @@
 // \brief   Calculation class for the AC-related analyses.
 // \author  Cindy Mordasini (cindy.mordasini@cern.ch)
 
-#ifndef PWGCF_FLOW_CORE_FLOWJAC2HANALYSIS_H
-#define PWGCF_FLOW_CORE_FLOWJAC2HANALYSIS_H
+#ifndef PWGCF_FLOW_CORE_FLOWJAC2HANALYSIS_H_
+#define PWGCF_FLOW_CORE_FLOWJAC2HANALYSIS_H_
 
 /* Header files. */
 #include <array>
 #include <vector>
-#include <TComplex.h>
+#include "TComplex.h"
 
 // O2 headers. //
 #include "Framework/AnalysisDataModel.h"
@@ -114,4 +114,4 @@ private:
 };
 } // namespace o2::analysis::PWGCF
 
-#endif  // PWGCF_FLOW_CORE_FLOWAC2HANALYSIS_H
+#endif  // PWGCF_FLOW_CORE_FLOWAC2HANALYSIS_H_

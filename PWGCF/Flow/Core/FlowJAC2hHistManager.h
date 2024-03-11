@@ -12,22 +12,21 @@
 // \brief   Histogram manager for the AC-related analyses.
 // \author  Cindy Mordasini (cindy.mordasini@cern.ch)
 
-#ifndef PWGCF_FLOW_CORE_FLOWJAC2HHISTMANAGER_H
-#define PWGCF_FLOW_CORE_FLOWJAC2HHISTMANAGER_H
+#ifndef PWGCF_FLOW_CORE_FLOWJAC2HHISTMANAGER_H_
+#define PWGCF_FLOW_CORE_FLOWJAC2HHISTMANAGER_H_
 
 /* Header files. */
 #include <array>
 #include <string>
 #include <string_view>
-#include <TH1.h>
-#include <TH2.h>
-#include <TH3.h>
+#include "TH1.h"
+#include "TH2.h"
+#include "TH3.h"
 //#include <THnSparse.h> // TODO: See if more advantageous for more events.
-#include <TProfile.h>
-#include <TProfile2D.h>
+#include "TProfile.h"
+#include "TProfile2D.h"
 
 // O2 headers. //
-#include "Framework/AnalysisDataModel.h"
 #include "Framework/HistogramRegistry.h"
 #include "Framework/StaticFor.h"
 
@@ -193,4 +192,4 @@ private:
 };
 } // namespace o2::analysis::PWGCF
 
-#endif  // PWGCF_FLOW_CORE_FLOWJAC2HHISTMANAGER_H
+#endif  // PWGCF_FLOW_CORE_FLOWJAC2HHISTMANAGER_H_

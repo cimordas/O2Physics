@@ -12,18 +12,18 @@
 // \brief   Histogram manager for the AC-related analyses.
 // \author  Cindy Mordasini (cindy.mordasini@cern.ch)
 
-#ifndef PWGCF_FLOW_CORE_FLOWJHISTMANAGER_H
-#define PWGCF_FLOW_CORE_FLOWJHISTMANAGER_H
+#ifndef PWGCF_FLOW_CORE_FLOWJHISTMANAGER_H_
+#define PWGCF_FLOW_CORE_FLOWJHISTMANAGER_H_
 
 /* Header files. */
 #include <array>
 #include <string>
 #include <string_view>
-#include <TH1.h>
-#include <TH2.h>
-#include <TH3.h>
-#include <TProfile.h>
-#include <TProfile2D.h>
+#include "TH1.h"
+#include "TH2.h"
+#include "TH3.h"
+#include "TProfile.h"
+#include "TProfile2D.h"
 
 // O2 headers. //
 #include "Framework/AnalysisDataModel.h"
@@ -102,7 +102,7 @@ public:
   /// \param cent Centrality percentile of the collision.
   /// \param multi Collision multiplicity at this step.
   template <int mode, typename T>
-  void FillEventQA(const T& coll, int cBin, float cent, int multi)
+  void FillEventQA(T const& coll, int cBin, float cent, int multi)
   {
     if (!mHistRegistryQA) {
       LOGF(fatal, "QA histogram registry missing. Quitting...");
@@ -174,7 +174,7 @@ public:
   /// \param weightNUE Value of the NUE weight to apply to pT.
   /// \param weightNUA Value of the NUA weight to apply to phi.
   template <int mode, typename T>
-  void FillTrackQA(const T& track, int cBin,
+  void FillTrackQA(T const& track, int cBin,
                    float weightNUE = 1., float weightNUA = 1., float zVtx = 0.)
   {
     if (!mHistRegistryQA) {
@@ -232,7 +232,7 @@ public:
   /// \note This method can be directly used if no switch is previously needed.
   // TODO: Add filling of the weight histograms.
   template <int cBin, int mode, typename T>
-  void FillThisTrackQA(const T& track, float zVtx = 0.,
+  void FillThisTrackQA(T const& track, float zVtx = 0.,
                        float weightNUE = 1., float weightNUA = 1.)
   {
     static constexpr std::string_view subDir[] = {"Before/", "After/"};
@@ -316,4 +316,4 @@ private:
 };
 } // namespace o2::analysis::PWGCF
 
-#endif  // PWGCF_FLOW_CORE_FLOWJHISTMANAGER_H
+#endif  // PWGCF_FLOW_CORE_FLOWJHISTMANAGER_H_

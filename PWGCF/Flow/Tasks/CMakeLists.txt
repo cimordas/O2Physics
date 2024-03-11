@@ -19,16 +19,16 @@ o2physics_add_dpl_workflow(flow-pbpb-task
                     PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore O2Physics::GFWCore
                     COMPONENT_NAME Analysis)
 
-o2physics_add_dpl_workflow(flow-ac2h-analysis
-                    SOURCES flowJAC2hAnalysisTask.cxx
-                    PUBLIC_LINK_LIBRARIES	O2::Framework
-                    			   	            O2Physics::AnalysisCore
-                                          O2Physics::PWGFlowCore
-                    COMPONENT_NAME Analysis)
-
 o2physics_add_dpl_workflow(flow-full-qa-task
                     SOURCES flowJFullQATask.cxx
                     PUBLIC_LINK_LIBRARIES	O2::Framework
                     			   	            O2Physics::AnalysisCore
-                                          O2Physics::PWGFlowCore
+                                          O2Physics::PWGCFFlowCore
+                    COMPONENT_NAME Analysis)
+
+o2physics_add_dpl_workflow(flow-ac2h-analysis
+                    SOURCES flowJAC2hAnalysisTask.cxx
+                    PUBLIC_LINK_LIBRARIES	O2::Framework
+                    			   	            O2Physics::AnalysisCore
+                                          O2Physics::PWGCFFlowCore
                     COMPONENT_NAME Analysis)

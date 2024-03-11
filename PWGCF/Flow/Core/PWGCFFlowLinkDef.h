@@ -9,8 +9,8 @@
 // granted to it by virtue of its status as an Intergovernmental Organization
 // or submit itself to any jurisdiction.
 
-#ifndef PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H
-#define PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H
+#ifndef PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H_
+#define PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H_
 
 #pragma link off all globals;
 #pragma link off all classes;
@@ -20,4 +20,4 @@
 #pragma link C++ class o2::analysis::PWGCF::FlowJAC2hHistManager + ;
 #pragma link C++ class o2::analysis::PWGCF::FlowJAC2hAnalysis + ;
 
-#endif  // PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H
+#endif  // PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H_
