@@ -22,6 +22,7 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TH3.h"
+#include "THnSparse.h"
 #include "TProfile.h"
 #include "TProfile2D.h"
 
@@ -216,7 +217,7 @@ public:
     }
 
     if (mDebugLog) {
-      LOGF(info, "The TrackQA has been filled for cBin = %d and mode = %d.",cBin, mode);
+      LOGF(info, "The TrackQA has been filled for cBin = %d and mode = %d.", cBin, mode);
     }
 
   }
@@ -255,8 +256,8 @@ public:
 
       // 3D distribution Zvtx-eta-phi.
       if (mObtainNUA) {
-          mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histZvtxEtaPhi"),
-                                zVtx, track.eta(), track.phi());
+        mHistRegistryQA->fill(HIST(mCentClasses[cBin])+HIST("After/histZvtxEtaPhi"),
+                              zVtx, track.eta(), track.phi());
       }
     }
 

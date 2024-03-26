@@ -19,5 +19,6 @@
 #pragma link C++ class o2::analysis::PWGCF::FlowJHistManager + ;
 #pragma link C++ class o2::analysis::PWGCF::FlowJAC2hHistManager + ;
 #pragma link C++ class o2::analysis::PWGCF::FlowJAC2hAnalysis + ;
+#pragma link C++ class o2::analysis::PWGCF::FlowJSPCAnalysis + ;
 
 #endif  // PWGCF_FLOW_CORE_PWGCFFLOWLINKDEF_H_

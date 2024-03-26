@@ -32,3 +32,10 @@ o2physics_add_dpl_workflow(flow-ac2h-analysis
                     			   	            O2Physics::AnalysisCore
                                           O2Physics::PWGCFFlowCore
                     COMPONENT_NAME Analysis)
+
+o2physics_add_dpl_workflow(flow-spc-task
+                    SOURCES flowJSPCAnalysisTask.cxx
+                    PUBLIC_LINK_LIBRARIES O2::Framework
+                                          O2Physics::AnalysisCore
+                                          O2Physics::PWGCFFlowCore
+                    COMPONENT_NAME Analysis)

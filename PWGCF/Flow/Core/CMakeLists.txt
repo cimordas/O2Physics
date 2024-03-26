@@ -13,10 +13,12 @@ o2physics_add_library(PWGCFFlowCore
                       SOURCES  FlowJHistManager.cxx
                                FlowJAC2hHistManager.cxx
                                FlowJAC2hAnalysis.cxx
+                               FlowJSPCAnalysis.cxx
                       PUBLIC_LINK_LIBRARIES O2::Framework O2Physics::AnalysisCore)
 
 o2physics_target_root_dictionary(PWGCFFlowCore
                                  HEADERS FlowJHistManager.h
                                          FlowJAC2hHistManager.h
                                          FlowJAC2hAnalysis.h
+                                         FlowJSPCAnalysis.h
                                  LINKDEF PWGCFFlowLinkDef.h)

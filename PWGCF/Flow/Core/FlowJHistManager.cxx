@@ -130,7 +130,7 @@ void FlowJHistManager::CreateHistQA()
     }
   }
 
-  if (mObtainNUA) { // TODO: Replace with THnSparse if better with more events.
+  if (mObtainNUA) { // TODO: Replace with HistType::kTHnSparseF if better with more events.
     mHistRegistryQA->add("Centrality_00-01/After/histZvtxEtaPhi", "Zvtx-eta-phi",
                          HistType::kTH3F, {axisZvtx, axisEta, axisPhi}, true);
   }
